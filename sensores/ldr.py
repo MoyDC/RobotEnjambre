@@ -1,47 +1,49 @@
+import sys
+import os
 import time
-from gpiozero import DigitalInputDevice
 from queue import Queue
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../MoreGPIO')))
+from More_GPIO_ESP32 import MoreGpio_ESP32
+
+# Crear una instancia del módulo MoreGpio_ESP32
+readSensor1 = MoreGpio_ESP32(bus_number=1, address=0x08)
+readSensor2 = MoreGpio_ESP32(bus_number=1, address=0x08)
 
 # Define el pin GPIO donde está conectado el sensor (ajústalo según tu configuración)
-pin_sensorLDR1 = 22
-pin_sensorLDR2 = 27
-# Crea el dispositivo de entrada digital para el sensor
-sensor_LDR1 = DigitalInputDevice(pin=pin_sensorLDR1)
-sensor_LDR2 = DigitalInputDevice(pin=pin_sensorLDR2)
+pin_sensorLDR1 = MoreGpio_ESP32.ADCPin36
+pin_sensorLDR2 = MoreGpio_ESP32.ADCPin39
+
 #Queue para almacenar los datos del sensor
 Queue_sensorLDR1 = Queue(maxsize=3)
 Queue_sensorLDR2 = Queue(maxsize=3)
+
 def sensorLDR():
     datosSensorLDR1 = 0
     datosSensorLDR2 = 0
+    cont = 0
     try:
         while True:
-            #start_time = time.time()
-            #LDR 1
-            if not sensor_LDR1.value:
-                #print("LDR 1 HIGH")
-                datosSensorLDR1 = ("LDR1", 1)
-            else:
-                #print("LDR 1 LOW")
-                datosSensorLDR1 = ("LDR1", 0)
-            # Almacenar datos al Queue
-            Queue_sensorLDR1.put(datosSensorLDR1)
+            start_time = time.time()
+            cont += 1
+            
+            #LDR1
+            sensor1_value, idPin_Return1= readSensor1.readSensor(MoreGpio_ESP32._Command_ADC_, pin_sensorLDR1, cont)
+            if sensor1_value is not None:
+                #print(f"{cont} - Sensor 1 Value: {sensor1_value}")
+                datosSensorLDR1 = ("LDR1", sensor1_value)
+                Queue_sensorLDR1.put(datosSensorLDR1)
             
             #LDR 2
-            if not sensor_LDR2.value:
-                #print("LDR 2 HIGH")
-                datosSensorLDR2 = ("LDR2", 1)
-            else:
-                #print("LDR 2 LOW")
-                datosSensorLDR2 = ("LDR2", 0)
-            # Almacenar datos al Queue
-            Queue_sensorLDR2.put(datosSensorLDR2)
-            
-            # Espera para no saturar la lectura
-            time.sleep(0.05)  
-            #end_time = time.time()
-            #elapsed_time = end_time - start_time
+            sensor2_value, idPin_Return2 = readSensor2.readSensor(MoreGpio_ESP32._Command_ADC_, pin_sensorLDR2, cont)
+            if sensor2_value is not None:
+                #print(f"{cont} - Sensor 2 Value: {sensor2_value}")
+                datosSensorLDR2 = ("LDR2", sensor2_value)
+                Queue_sensorLDR2.put(datosSensorLDR2)
+             
+            end_time = time.time()
+            elapsed_time = end_time - start_time
             #print(f"Tiempo transcurrido: {elapsed_time} segundos")
 
     except KeyboardInterrupt:
         print("\nLectura de sensor terminada.")
+        
