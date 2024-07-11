@@ -2,7 +2,7 @@ import sys
 import os
 import time
 from queue import Queue
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../MoreGPIO')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../moreGPIO')))
 from More_GPIO_ESP32 import MoreGpio_ESP32
 
 # Crear una instancia del módulo MoreGpio_ESP32
