@@ -22,36 +22,20 @@ def format_sensor_data():
     time.sleep(0.1)
     try:
         while True:
-            #start_time = time.time()
+            start_time = time.time()
             time.sleep(0.01)
-            # Obtener datos
-            #try:
-            #    if not Queue_datosUltrasonicos["S1"].empty():
-            S1_cm = Queue_datosUltrasonicos["S1"].get()
-            #S1_cm = S1_data[1]
-            #    if not Queue_datosUltrasonicos["S2"].empty():    
+            
+            # Lectura de sensores
+            S1_cm = Queue_datosUltrasonicos["S1"].get()  
             S2_cm = Queue_datosUltrasonicos["S2"].get()
-            #S2_cm = S2_data[1]
-            #    if not Queue_datosUltrasonicos["S3"].empty():
             S3_cm = Queue_datosUltrasonicos["S3"].get()
-            #S3_cm = S3_data[1]
-            #    if not Queue_datosUltrasonicos["S4"].empty():
             S4_cm = Queue_datosUltrasonicos["S4"].get()
-            #S4_cm = S4_data[1]
-            #    if not Queue_datosLidar.empty():
             Lidar_cm = Queue_datosLidar.get()
-            #Lidar_cm = Lidar_data[1]
-            #    if not Queue_sensorInfrarrojo.empty():
             Infrarrojo = Queue_sensorInfrarrojo.get();
-            #Obstaculo = Obstaculo_data[1]
             AngBrujula = Queue_BlujulaDigital.get();
             SensorLDR1 = Queue_sensorLDR1.get();
             SensorLDR2 = Queue_sensorLDR2.get();
-            #except Exception as e:
-            #    #print(f"Error al obtener datos de las colas: {e}")
-            #    continue  # Continuar con la siguiente iteración del bucle
-
-
+            
             # Incrementar contador de datos
             contador_datos += 1
 
@@ -71,8 +55,8 @@ def format_sensor_data():
             print(formatted_data)
             #tamaño = Queue_sensorLDR1.qsize()
             #print(f"tamaño: {tamaño}")
-            #end_time = time.time()
-            #elapsed_time = end_time - start_time
+            end_time = time.time()
+            elapsed_time = end_time - start_time
             #print(f"Tiempo transcurrido: {elapsed_time} segundos") #Tiempo aproximado 0.05s
     except KeyboardInterrupt:
         print("Proceso de impresión de datos finalizado.")     
