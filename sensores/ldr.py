@@ -1,10 +1,13 @@
+import sys
+import os
 import time
 from queue import Queue
-from adcESP32 import adc_ESP2
-         
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../sensores')))
+from adcESP32 import adc_ESP32
+
 # Crear una instancia del módulo MoreGpio_ESP32
-Sensor1 = adc_ESP2(bus_number=1, address=0x08)
-Sensor2 = adc_ESP2(bus_number=1, address=0x08)
+Sensor1 = adc_ESP32(bus_number=1, address=0x08)
+Sensor2 = adc_ESP32(bus_number=1, address=0x08)
 
 # Define el pin GPIO donde está conectado el sensor (ajústalo según tu configuración)
 pin_sensorLDR1 = 36

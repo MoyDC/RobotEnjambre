@@ -1,9 +1,10 @@
 import sys
 import os
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../moreGPIO')))
 from More_GPIO_ESP32 import MoreGpio_ESP32
 
-class adc_ESP2(MoreGpio_ESP32):
+class adc_ESP32(MoreGpio_ESP32):
     def __init__(self, bus_number=1, address=0x08, adc_pin=None):
         super().__init__(bus_number, address)
         self._adc_pins = {
