@@ -14,17 +14,17 @@ int idADC_CommandRequest = -1;
 #define _Command_ADC_ 103
 
 // Pines Output
-int outputPins[4] = {5, 17, 16, 4};
+int outputPins[4] = {23, 19, 18, 5};
 
 // Pines PWM
 const int maxChannels = 8;    // Número máximo de canales PWM disponibles en la ESP32
-int pwmPins[maxChannels] = {13, 12, 14, 27, 26, 25, 19, 18};  // Inicializar todos los pines como no asignados
+int pwmPins[maxChannels] = {12, 14, 27, 26, 25, 33, 17, 16};  // Inicializar todos los pines como no asignados
 int pwmChannels[maxChannels] = {5, 6, 7, 8, 9, 10, 11, 12};  // Inicializar todos los canales como no asignados
 int pwmFrequencies[maxChannels] = {5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000};   // Frecuencia del PWM en Hz (por defecto 5000)
 int pwmResolutions[maxChannels] = {8, 8, 8, 8, 8, 8, 8, 8};      // Resolución del PWM (por defecto 8 bits)
 
 // Pines servomotores
-int servoPins[3] = {0, 2, 15};
+int servoPins[3] = {4, 13, 15};
 Servo servos[3];
 
 // Pines ADC
