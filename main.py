@@ -1,4 +1,5 @@
 import time
+import threading
 from threading import Thread
 from sensores.led import control_led
 from sensores.ultrasonicos import leer_sensor, sensores, nombres_sensores, Queue_datosUltrasonicos
@@ -6,7 +7,12 @@ from sensores.lidar import leer_lidar, Queue_datosLidar
 from sensores.infrarrojo import sensorInfrarrojo, Queue_sensorInfrarrojo
 from sensores.brujula import BlujulaDigital, Queue_BlujulaDigital
 from sensores.ldr import sensorLDR, Queue_sensorLDR1, Queue_sensorLDR2
+from actuadores.motor_SpeedController_PID import create_motor_controller, data_queue1, data_queue2
+from actuadores.servomotor import ServoController
+
 #---------------------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------------
+
 # Función para formatear y imprimir los datos de los sensores
 def format_sensor_data():
     contador_datos = 0
@@ -52,7 +58,7 @@ def format_sensor_data():
                 f"LDR1: {SensorLDR1[1]} - "
                 f"LDR2: {SensorLDR2[1]}"
             )
-            print(formatted_data)
+            #print(formatted_data)
             #tamaño = Queue_sensorLDR1.qsize()
             #print(f"tamaño: {tamaño}")
             end_time = time.time()
@@ -60,12 +66,20 @@ def format_sensor_data():
             #print(f"Tiempo transcurrido: {elapsed_time} segundos") #Tiempo aproximado 0.05s
     except KeyboardInterrupt:
         print("Proceso de impresión de datos finalizado.")     
+
 #---------------------------------------------------------------------------------------------------------------
-# Crear y arrancar los hilos
-if __name__ == "__main__":
-    threads = []
+        
+# Funciona para inicializar todos los hilos
+threads = [] # Lista global para almacenar referencias de hilos
+def init_threads():
+    controlSpeed_thread1 = threading.Thread(target=motor1_speedController.control_loop, args=(data_queue1,))
+    controlSpeed_thread2 = threading.Thread(target=motor2_speedController.control_loop, args=(data_queue2,))
+
+    controlSpeed_thread1.start()
+    controlSpeed_thread2.start()
+    threads.extend([controlSpeed_thread1, controlSpeed_thread2])
     
-    # Iniciar el hilo del LED
+     # Iniciar el hilo del LED
     thread_led = Thread(target=control_led)
     thread_led.start()
     threads.append(thread_led)
@@ -103,7 +117,74 @@ if __name__ == "__main__":
     thread_print_data.start()
     threads.append(thread_print_data)
 
-    # Esperar a que todos los hilos terminen
-    for thread in threads:
-        thread.join()
+#---------------------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------------
+    
+# Configuración del sistema de control de motores usando PID
+Kp = 2
+Ki = 6
+Kd = 0.01
+max_output = 500
+#Pines motor 1
+EN_1 = 17
+IN1_1 = 23
+IN2_1 = 19
+PinEncoder_1 = 27
+#Pines motor 2
+EN_2 = 16
+IN1_2 = 18
+IN2_2 = 5
+PinEncoder_2 = 10
+motor1_speedController = create_motor_controller(1, 0x08, EN_1, IN1_1, IN2_1, PinEncoder_1, Kp, Ki, Kd, max_output)
+motor2_speedController = create_motor_controller(1, 0x08, EN_2, IN1_2, IN2_2, PinEncoder_2, Kp, Ki, Kd, max_output)
+
+#---------------------------------------------------------------------------------------------------------------
+
+# Configuración de los servomotores
+pinServo1 = 4
+pinServo2 = 13
+pinServo3 = 15
+servo1 = ServoController(bus_number=1, address=0x08)
+servo2 = ServoController(bus_number=1, address=0x08)
+servo3 = ServoController(bus_number=1, address=0x08)
+
+#---------------------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------------
+
+# Main
+if __name__ == "__main__":
+    try:
+        #Inicializar todos los hilos
+        init_threads()
+        
+        # Configuracion inicial motores
+        motor1_speedController.set_setpoint(150)
+        motor2_speedController.set_setpoint(150)
+        
+        # Configuracion inicial servos
+        servo1.setup_servo(servo1.get_servo_name_by_pin(pinServo1), 10)
+        servo2.setup_servo(servo2.get_servo_name_by_pin(pinServo2), 150)
+        servo3.setup_servo(servo3.get_servo_name_by_pin(pinServo3), 100)
+
+        while True:
+            if not data_queue1.empty() and not data_queue2.empty():
+                setpoint1, pv1 = data_queue1.get()
+                setpoint2, pv2 = data_queue2.get()
+                print(f"Setpoint1: {setpoint1:.2f}, PV1: {pv1:.2f} | Setpoint2: {setpoint2:.2f}, PV2: {pv2:.2f}")
+                
+            #print(f"Servo1: {servo1.get_servo_value()}, Servo2: {servo2.get_servo_value()} | Servo3: {servo3.get_servo_value()}")
+            
+            time.sleep(0.1)
+            
+    except KeyboardInterrupt:
+        print("Interrupción recibida, deteniendo todos los hilos...")
+        motor1_speedController.set_setpoint(0)
+        motor2_speedController.set_setpoint(0)
+        
+    finally:
+        for thread in threads:
+            thread.join()
+        print("Programa terminado limpiamente.")
+        
+#---------------------------------------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------------------------------------
