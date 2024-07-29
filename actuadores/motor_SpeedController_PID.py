@@ -24,6 +24,7 @@ class Motor_SpeedController_PID:
         self.pv = 0.0
         self.delayPID = delayLoopPID
         self.encoder.when_activated = self.increment_counter
+        self._is_running = False
 
     def increment_counter(self):
         self.contador += 1
@@ -34,7 +35,8 @@ class Motor_SpeedController_PID:
         return factor * self.contador * (60.0 / ppr)
 
     def control_loop(self, data_queue: Queue[Tuple[float, float]]):
-        while True:
+        self._is_running = True
+        while self._is_running:
             self.pv = self.calculate_rpm()
             self.contador = 0
             self.pid.setpoint = self.setpoint
@@ -55,6 +57,11 @@ class Motor_SpeedController_PID:
 
     def get_pv(self) -> float:
         return self.pv
+    
+    def stop(self, name="Motor"):
+        self.motor.stop()
+        self._is_running = False
+        print(f"{name} stopped.")
 
 # Función para crear instancias de controladores de motor
 def create_motor_controller(bus_number: int, address: int, EN: int, IN1: int, IN2: int, pin_encoder: int, Kp: float, Ki: float, Kd: float, max_output: float, delayLoopPID=0.1) -> Motor_SpeedController_PID:
