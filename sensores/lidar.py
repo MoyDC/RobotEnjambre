@@ -1,68 +1,77 @@
 import time
-import sys
-from queue import Queue
-import tfmplus as tfmP # Import the `tfmplus` module v0.1.0
+import queue
+import tfmplus as tfmP # Import the tfmplus module v0.1.0
 from tfmplus import *  # and command and parameter definitions
 
-#Queue para almacenar los datos del lidar
-Queue_datosLidar = Queue(maxsize=3)
-# Función para el hilo que lee el sensor LIDAR
-def leer_lidar():
-    # Configuración del sensor LIDAR
-    serialPort = "/dev/ttyAMA0"  # Raspberry Pi normal serial port
-    serialRate = 115200          # TFMini-Plus default baud rate
+class LidarSensor:
+    def __init__(self, serial_port="/dev/ttyAMA0", baud_rate=115200, max_queue_size=3):
+        self.serial_port = serial_port
+        self.baud_rate = baud_rate
+        self.data_queue = queue.Queue(maxsize=max_queue_size)
+        self._is_running = False
+        self.__initializeOkay = False
+        self.__FrameRate = 20
 
-    print("\n\rTFMPlus Module Example - 06SEP2021")
-
-    # - - - Set and Test serial communication - - - -
-    print("Serial port: ", end='')
-    if tfmP.begin(serialPort, serialRate):
-        print("ready.")
-    else:
-        print("not ready")
-        sys.exit()   #  quit the program if serial not ready
+    def initialize(self, frame_rate=20):
+        self.__FrameRate = frame_rate
+        # Initialization code for the LIDAR sensor
+        print("Initializing LIDAR sensor...")
+        if tfmP.begin(self.serial_port, self.baud_rate):
+            print("Serial port ready.")
+            self.__initializeOkay = True
+        else:
+            print("Failed to initialize LIDAR sensor.")
+            self.__initializeOkay = False
+            return False
+        
+        print("Performing system reset...")
+        if not tfmP.sendCommand(tfmP.SOFT_RESET, 0):
+            print("Failed to reset the sensor.")
+            self.__initializeOkay = False
+            return False
+        
+        time.sleep(0.5)
+        print("Setting frame rate...")
+        if not tfmP.sendCommand(tfmP.SET_FRAME_RATE, frame_rate):
+            print("Failed to set frame rate.")
+            self.__initializeOkay = False
+            return False
+        
+        self.__initializeOkay = True
+        return True
     
-    # - - Perform a system reset - - - - - - - -
-    print("Soft reset: ", end='')
-    if tfmP.sendCommand(SOFT_RESET, 0):
-        print("passed.")
-    else:
-        tfmP.printReply()
-    # - - - - - - - - - - - - - - - - - - - - - - - -
-    time.sleep(0.5)  # allow 500ms for reset to complete
+    def start_reading(self):
+        self._is_running = True
+        _delayReading_ = 1/self.__FrameRate
+        while self._is_running:
+            time.sleep(_delayReading_)  # Adjust based on your frame rate
+            try:
+                if self.__initializeOkay==True:
+                    tfmP.getData()
+                    data = ("Lidar", tfmP.dist)
+                    self._add_data_to_queue(data)
+                else:
+                    #tfmP.printFrame()
+                    data = ("Lidar", -1)
+                    self._add_data_to_queue(data)
+                    print("Sensor lidar - Error reading data")
+            except Exception as e:
+                print(f"Sensor lidar - Error reading data: {e}")
 
-    # - - Get and Display the firmware version - - - - - - -
-    print("Firmware version: ", end='')
-    if tfmP.sendCommand(GET_FIRMWARE_VERSION, 0):
-        print(str(tfmP.version[0]) + '.', end='')  # print three numbers
-        print(str(tfmP.version[1]) + '.', end='')  # separated by a dot
-        print(str(tfmP.version[2]))
-    else:
-        tfmP.printReply()
-    # - - - - - - - - - - - - - - - - - - - - - - - -
-    # - - Set the data-frame rate to 20Hz - - - - - - - -
-    print("Data-Frame rate: ", end='')
-    if tfmP.sendCommand(SET_FRAME_RATE, FRAME_20):
-        print(str(FRAME_20) + 'Hz')
-    else:
-        tfmP.printReply()
-    # - - - - - - - - - - - - - - - - - - - - - - - -
-    time.sleep(0.5)     # Wait half a second.
-    #contador_datos = 0
-    try:
-        while True:
-            #start_time = time.time()
-            time.sleep(0.05)   # Loop delay 50ms to match the 20Hz data frame rate
-            # Use the 'getData' function to get data from device
-            if( tfmP.getData()):
-                # Almacenar datos al Queue
-                #print(f"Lidar: {tfmP.dist}")
-                datosLidar = ("Lidar", tfmP.dist)
-                Queue_datosLidar.put(datosLidar)
-            else:                  # If the command fails...
-                tfmP.printFrame()    # display the error and HEX data
-            #end_time = time.time()
-            #elapsed_time = end_time - start_time
-            #print(f"Tiempo transcurrido: {elapsed_time} segundos")
-    except KeyboardInterrupt:
-        print("Proceso de leer datos lidar finalizado.")
+    def stop_reading(self):
+        self._is_running = False
+        print("Sensor lidar stopped.")
+
+    def _add_data_to_queue(self, data):
+        if self.data_queue.full():
+            self.data_queue.get()  # Remove the oldest data
+        self.data_queue.put(data, block=False)  # Add new data
+
+    def get_data(self):
+        # Get and remove the oldest data from the queue
+        if not self.data_queue.empty():
+            return self.data_queue.get()# Remove and return the oldest data
+        else:
+            data = ("Lidar", -2)
+            print("Sensor lidar - No data available")
+            return data
