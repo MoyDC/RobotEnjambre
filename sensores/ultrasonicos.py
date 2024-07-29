@@ -1,38 +1,38 @@
 import time
-from gpiozero import DistanceSensor
 from queue import Queue
+from gpiozero import DistanceSensor
 
-# Configuración de los sensores ultrasónicos
-sensores = [
-    DistanceSensor(echo=16, trigger=26),
-    DistanceSensor(echo=5, trigger=6),
-    DistanceSensor(echo=7, trigger=1),
-    DistanceSensor(echo=25, trigger=8)
-]
-# Nombres de los sensores para imprimir
-nombres_sensores = ["S1", "S2", "S3", "S4"]
-# Diccionario para las colas de datos de cada sensor
-Queue_datosUltrasonicos = {nombre_sensor: Queue(maxsize=3) for nombre_sensor in nombres_sensores}
-# Variable global para contar los datos
-contador_datos = 0
-# Función para el hilo que lee los sensores ultrasónicos
-def leer_sensor(sensor, nombre_sensor):
-    global contador_datos
-    delayUltrasonicos = 0.05 # Delay entre lecturas de los sensores ultrasónicos
-    try:
-        while True:
-            #start_time = time.time()
-            distancia_cm = sensor.distance * 100  # Convertir a centímetros
-            
-            # Agregar datos al Queue correspondiente
-            Queue_datosUltrasonicos[nombre_sensor].put(distancia_cm)
-            
-            time.sleep(delayUltrasonicos)
-            
-            #end_time = time.time()
-            #elapsed_time = end_time - start_time
-            #if nombre_sensor == "S4":
-                #print(f"Tiempo transcurrido: {elapsed_time} segundos - Sensor: {distancia_cm} cm")
+class UltrasonicSensor:
+    def __init__(self, echo_pin: int, trigger_pin: int, name: str, max_sizeQueue=3):
+        self.sensor = DistanceSensor(echo=echo_pin, trigger=trigger_pin)
+        self.queue = Queue(maxsize=max_sizeQueue)
+        self._running = True
+        self.name = name
 
-    except KeyboardInterrupt:
-        print(f"Lectura del {nombre_sensor} finalizada.")
+    def start_reading(self, _delayUltrasonico_=0.05):
+        delay = _delayUltrasonico_
+        while self._running:
+            try:
+                distance_cm = self.sensor.distance * 100
+                data = (self.name, distance_cm)
+                if self.queue.full():
+                    self.queue.get() # Remove the oldest data
+                self.queue.put(data, block=False)
+                time.sleep(delay)
+            except Exception as e:
+                print(f"{self.name} - Error reading data from: {e}")
+                data = (self.name, -1)
+                self.queue.put(data)
+
+    def stop(self):
+        self._running = False
+        print(f"Sensor {self.name} stopped.")
+
+    def get_data(self):
+        if not self.queue.empty():
+            return self.queue.get()
+        else:
+            data = (self.name, -2)
+            print(f"{self.name} - No data available")
+            return data
+        
