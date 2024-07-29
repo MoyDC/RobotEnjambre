@@ -5,7 +5,6 @@ from queue import Queue
 
 # Define constants
 QMC5883_ADDR = 0x0D
-# REG CONTROL
 Mode_Standby = 0b00000000
 Mode_Continuous = 0b00000001
 ODR_10Hz = 0b00000000
@@ -18,13 +17,14 @@ OSR_512 = 0b00000000
 OSR_256 = 0b01000000
 OSR_128 = 0b10000000
 OSR_64 = 0b11000000
-class MechaQMC5883:
-    def __init__(self, address=QMC5883_ADDR, bus=1):
+
+class Brujula_MechaQMC5883:
+    def __init__(self, address=QMC5883_ADDR, bus=1, max_sizeQueue=3, delay=0.04):
         self.address = address
         self.bus = smbus2.SMBus(bus)
-
-    def set_address(self, addr):
-        self.address = addr
+        self.delay = delay
+        self._is_running = False
+        self.queue = Queue(maxsize=max_sizeQueue)
 
     def write_reg(self, reg, val):
         self.bus.write_byte_data(self.address, reg, val)
@@ -48,39 +48,36 @@ class MechaQMC5883:
         overflow = (data[6] & 0x02) << 2
         return x, y, z, overflow
 
-    def read_with_azimuth_int(self):
-        x, y, z, err = self.read()
-        a = int(self.azimuth(y, x))
-        return x, y, z, a, err
+    def azimuth(self, a, b):
+        azimuth = math.atan2(a, b) * 180.0 / math.pi
+        return azimuth if azimuth >= 0 else 360 + azimuth
 
     def read_with_azimuth_float(self):
         x, y, z, err = self.read()
         a = self.azimuth(y, x)
         return x, y, z, a, err
 
-    def azimuth(self, a, b):
-        azimuth = math.atan2(a, b) * 180.0 / math.pi
-        return azimuth if azimuth >= 0 else 360 + azimuth
-#Queue para almacenar los datos de la brujula
-Queue_BlujulaDigital = Queue(maxsize=3)
-def BlujulaDigital():
-    sensor = MechaQMC5883()
-    sensor.init()
-    try:
-        while True:
-            #start_time = time.time()
-            #declinacion = 4.23;  # declinacion desde pagina: http://www.magnetic-declination.com/
-            x, y, z, azimuth, err = sensor.read_with_azimuth_float()
-            #geografico = acimut + declinacion; # acimut geografico como suma del magnetico y declinacion
-            #if geografico < 0:
-            #    geografico = geografico + 360
-            datosBrujulaDigital = ("BrujulaDigital", azimuth)
-            # Almacenar datos al Queue
-            Queue_BlujulaDigital.put(datosBrujulaDigital)
-            #print(f"x: {x}, y: {y}, z: {z}, Azimuth: {azimuth}")
-            time.sleep(0.05)
-            #end_time = time.time()
-            #elapsed_time = end_time - start_time
-            #print(f"Tiempo transcurrido: {elapsed_time} segundos")
-    except Exception as e:
-        print(f"Error al leer el sensor: {e}")
+    def start_reading(self):
+        self._is_running = True
+        while self._is_running:
+            try:
+                x, y, z, azimuth, err = self.read_with_azimuth_float()
+                datosBrujulaDigital = ("BrujulaDigital", azimuth)
+                if self.queue.full():
+                    self.queue.get()  # Remove the oldest data to maintain the size
+                self.queue.put(datosBrujulaDigital)
+                time.sleep(self.delay)
+            except Exception as e:
+                print(f"Error al leer el sensor: {e}")
+
+    def stop(self):
+        self._is_running = False
+        print("Sensor Brujula MechaQMC5883 stopped.")
+
+    def get_data(self):
+        if not self.queue.empty():
+            return self.queue.get()
+        else:
+            data = ("BrujulaDigital", -2)
+            print("BrujulaDigital - No data available")
+            return data
