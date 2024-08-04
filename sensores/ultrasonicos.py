@@ -3,7 +3,7 @@ from queue import Queue
 from gpiozero import DistanceSensor
 
 class UltrasonicSensor:
-    def __init__(self, echo_pin: int, trigger_pin: int, name: str, max_sizeQueue=3):
+    def __init__(self, echo_pin, trigger_pin, name, max_sizeQueue=3):
         self.sensor = DistanceSensor(echo=echo_pin, trigger=trigger_pin)
         self.queue = Queue(maxsize=max_sizeQueue)
         self._running = True
