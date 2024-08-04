@@ -1,7 +1,7 @@
 import time
 import threading
 from threading import Thread
-from motor_SpeedController_PID import create_motor_controller, data_queue1, data_queue2
+from motor_SpeedController_PID import create_motor_controller
 
 # Configuración del sistema de control de motores usando PID
 Kp = 2
@@ -29,8 +29,8 @@ motor2_speedController = create_motor_controller(1, 0x08, EN_2, IN1_2, IN2_2, Pi
 if __name__ == "__main__":
     try:
         # Init threads
-        controlSpeed_thread1 = threading.Thread(target=motor1_speedController.control_loop, args=(data_queue1,))
-        controlSpeed_thread2 = threading.Thread(target=motor2_speedController.control_loop, args=(data_queue2,))
+        controlSpeed_thread1 = threading.Thread(target=motor1_speedController.control_loop)
+        controlSpeed_thread2 = threading.Thread(target=motor2_speedController.control_loop)
 
         controlSpeed_thread1.start()
         controlSpeed_thread2.start()
@@ -41,9 +41,11 @@ if __name__ == "__main__":
         
         
         while True:
-            if not data_queue1.empty() and not data_queue2.empty():
-                setpoint1, pv1 = data_queue1.get()
-                setpoint2, pv2 = data_queue2.get()
+            data1 = motor1_speedController.get_data()
+            data2 = motor2_speedController.get_data()
+            if data1[1] != -2 and data2[1] != -2:
+                setpoint1, pv1 = data1
+                setpoint2, pv2 = data2
                 print(f"Setpoint1: {setpoint1:.2f}, PV1: {pv1:.2f} | Setpoint2: {setpoint2:.2f}, PV2: {pv2:.2f}")
         
             time.sleep(0.1)

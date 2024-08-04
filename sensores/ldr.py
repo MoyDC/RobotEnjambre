@@ -3,50 +3,37 @@ import os
 import time
 from queue import Queue
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../sensores')))
-from adcESP32 import adc_ESP32
+from adcESP32 import adc_ESP32  # Asegúrate de que el módulo adcESP32 esté disponible
 
-# Crear una instancia del módulo MoreGpio_ESP32
-Sensor1 = adc_ESP32(bus_number=1, address=0x08)
-Sensor2 = adc_ESP32(bus_number=1, address=0x08)
-
-# Define el pin GPIO donde está conectado el sensor (ajústalo según tu configuración)
-pin_sensorLDR1 = 36
-pin_sensorLDR2 = 39
-
-Sensor1.setup_adc_pin(Sensor1.get_adc_name_by_pin(pin_sensorLDR1))
-Sensor2.setup_adc_pin(Sensor2.get_adc_name_by_pin(pin_sensorLDR2))
-
-#Queue para almacenar los datos del sensor
-Queue_sensorLDR1 = Queue(maxsize=3)
-Queue_sensorLDR2 = Queue(maxsize=3)
-
-def sensorLDR():
-    datosSensorLDR1 = 0
-    datosSensorLDR2 = 0
-    cont = 0
-    try:
-        while True:
-            start_time = time.time()
-            cont += 1
-            
-            #LDR1
-            sensor1_value, idPin_Return1 = Sensor1.read_adc(cont)
-            if sensor1_value is not None:
-                #print(f"{cont} - Sensor 1 Value: {sensor1_value}")
-                datosSensorLDR1 = ("LDR1", sensor1_value)
-                Queue_sensorLDR1.put(datosSensorLDR1)
-            
-            #LDR 2
-            sensor2_value, idPin_Return2 = Sensor2.read_adc(cont)
-            if sensor2_value is not None:
-                #print(f"{cont} - Sensor 2 Value: {sensor2_value}")
-                datosSensorLDR2 = ("LDR2", sensor2_value)
-                Queue_sensorLDR2.put(datosSensorLDR2)
-             
-            end_time = time.time()
-            elapsed_time = end_time - start_time
-            #print(f"Tiempo transcurrido: {elapsed_time} segundos")
-
-    except KeyboardInterrupt:
-        print("\nLectura de sensor terminada.")
+class SensorADC:
+    def __init__(self, bus_number, address, pin_sensor, max_sizeQueue=3, delay=0.02):
+        self.sensor = adc_ESP32(bus_number=bus_number, address=address)
+        self.pin_sensor = pin_sensor
+        self.queue = Queue(maxsize=max_sizeQueue)
+        self.sensor.setup_adc_pin(self.sensor.get_adc_name_by_pin(pin_sensor))
+        self._is_running = False
+        self.__delay = delay
         
+    def start(self):
+        self._is_running = True
+        while self._is_running:
+            sensor_value, _ = self.sensor.read_adc()
+            if sensor_value is not None:
+                data = (f"LDR{self.pin_sensor}", sensor_value)
+                if self.queue.full():
+                    self.queue.get()  # Remove the oldest data if queue is full
+                self.queue.put(data)
+            time.sleep(self.__delay)  # Adjust as needed
+
+    def stop(self):
+        self._is_running = False
+        print(f"LDR sensor pin {self.pin_sensor} stopped.")
+
+    def get_data(self):
+        if not self.queue.empty():
+            return self.queue.get()
+        else:
+            data = ("LDR pin {self.pin_sensor}", -2)
+            print("LDR pin {self.pin_sensor} - No data available")
+            return data
+
