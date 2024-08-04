@@ -6,15 +6,13 @@ from gpiozero import DigitalInputDevice
 from simple_pid import PID
 import os
 import sys
+import threading
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../actuadores')))
 from motor import Motor
 
-# Crear los queues de comunicación
-data_queue1: Queue[Tuple[float, float]] = queue.Queue(maxsize=3)
-data_queue2: Queue[Tuple[float, float]] = queue.Queue(maxsize=3)
-
 class Motor_SpeedController_PID:
-    def __init__(self, motor: Motor, pid: PID, encoder: DigitalInputDevice, max_output: float, delayLoopPID=0.1):
+    def __init__(self, motor: Motor, pid: PID, encoder: DigitalInputDevice, max_output: float, delayLoopPID=0.1, max_sizeQueue=3):
         self.motor = motor
         self.pid = pid
         self.encoder = encoder
@@ -25,6 +23,7 @@ class Motor_SpeedController_PID:
         self.delayPID = delayLoopPID
         self.encoder.when_activated = self.increment_counter
         self._is_running = False
+        self.data_queue = Queue(maxsize=max_sizeQueue)
 
     def increment_counter(self):
         self.contador += 1
@@ -34,7 +33,7 @@ class Motor_SpeedController_PID:
         factor = 10
         return factor * self.contador * (60.0 / ppr)
 
-    def control_loop(self, data_queue: Queue[Tuple[float, float]]):
+    def control_loop(self):
         self._is_running = True
         while self._is_running:
             self.pv = self.calculate_rpm()
@@ -44,10 +43,11 @@ class Motor_SpeedController_PID:
             pwm_value = int(control_value * 255 / self.max_output)
             self.motor.forward(pwm_value)
             
-            if data_queue.full():
-                data_queue.get()
-            data_queue.put((self.setpoint, self.pv), block=False)
+            if self.data_queue.full():
+                self.data_queue.get()
+            self.data_queue.put((self.setpoint, self.pv), block=False)
             time.sleep(self.delayPID)
+        self.motor.stop()
 
     def set_setpoint(self, setpoint: float):
         self.setpoint = max(0, min(200, setpoint))  # Ensure setpoint is between 0 and 200
@@ -57,6 +57,12 @@ class Motor_SpeedController_PID:
 
     def get_pv(self) -> float:
         return self.pv
+    
+    def get_data(self) -> Tuple[float, float]:
+        if not self.data_queue.empty():
+            return self.data_queue.get()
+        else:
+            return (self.setpoint, -2)  # Return an error value if queue is empty
     
     def stop(self, name="Motor"):
         self.motor.stop()
@@ -71,3 +77,4 @@ def create_motor_controller(bus_number: int, address: int, EN: int, IN1: int, IN
     pid.output_limits = (0, max_output)
     encoder = DigitalInputDevice(pin_encoder)
     return Motor_SpeedController_PID(motor, pid, encoder, max_output, delayLoopPID)
+
