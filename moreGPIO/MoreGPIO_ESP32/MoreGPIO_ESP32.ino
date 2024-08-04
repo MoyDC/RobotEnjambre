@@ -3,15 +3,17 @@
 
 #define I2C_SLAVE_ADDRESS 0x08
 
-int currentCommandRequest = -1;
-int idADC_CommandRequest = -1;
+volatile bool processing = false;
+volatile int currentCommandRequest = -1;
+volatile int idADC_CommandRequest = -1;
 
 // Macros Receive - I2C
 enum Command {
   Command_Output = 100,
   Command_PWM = 101,
   Command_Servomotor = 102,
-  Command_ADC = 103
+  Command_ADC = 103,
+  Command_RST = 104
 };
 
 // Pines Output
@@ -29,6 +31,11 @@ Servo servos[3];
 
 // Pines ADC
 const int adcPins[] = {36, 39, 34, 35};
+
+// Definir el pin donde está conectado el LED
+#define LED_PIN 2
+unsigned long previousMillis = 0;  // Almacena el tiempo de la última actualización del LED
+const long interval = 250;         // Intervalo de tiempo entre cambios de estado del LED (en milisegundos)
 
 void setup() {
   Serial.begin(115200);
@@ -49,11 +56,22 @@ void setup() {
   for (int i = 0; i < sizeof(servoPins)/sizeof(servoPins[0]); i++) {
     servos[i].attach(servoPins[i]);
   }
-}
+
+  // Configurar el pin LED como salida
+  pinMode(LED_PIN, OUTPUT);
+
+}//End setup
 
 void loop() {
-  // Otras tareas
-}
+
+  //*****BLINK*****
+  unsigned long currentMillis = millis();  
+  if (currentMillis - previousMillis > interval) {  
+    previousMillis = currentMillis; 
+    digitalWrite(LED_PIN, !digitalRead(LED_PIN));  // Cambiar el estado del LED
+  }
+
+}//End loop
 
 void receiveEvent(int howMany) {
   if (Wire.available() >= 3) {
@@ -65,15 +83,23 @@ void receiveEvent(int howMany) {
       case Command_Output:
         handleOutput(pin, value);
         break;
+
       case Command_PWM:
         handlePWM(pin, value);
         break;
+
       case Command_Servomotor:
         handleServo(pin, value);
         break;
+
       case Command_ADC:
         handleADC(pin, value);
         break;
+
+      case Command_RST:
+        ESP.restart();  // Reinicia la ESP32
+        break;
+
       default:
         Serial.println("Receive - Wrong Command!!");
         break;
@@ -112,26 +138,44 @@ void handleServo(int pin, int value) {
 }
 
 void handleADC(int pin, int value) {
+  if (processing) {
+    //Serial.println("ESP32 is busy processing another request.");
+    return; // Skip processing if already handling a request
+  }
+  processing = true;
+
   int id = checkPin(pin, adcPins, sizeof(adcPins) / sizeof(adcPins[0]));
   if (id >= 0) {
     currentCommandRequest = Command_ADC;
     idADC_CommandRequest = id;
+    
+  } else {
+    Serial.println("Invalid ADC pin");
+    processing = false;
   }
 }
 
 void requestEvent() {
-  if (currentCommandRequest == Command_ADC && idADC_CommandRequest >= 0) {
-    int data = analogRead(adcPins[idADC_CommandRequest]);
-    Wire.write(data & 0xFF);
-    Wire.write((data >> 8) & 0xFF);
-    Wire.write(adcPins[idADC_CommandRequest]);
-    Serial.printf("Pin ADC %d - valueADC: %d\n", adcPins[idADC_CommandRequest], data);
+  //unsigned long startTime = micros(); // Start timer
+  if (currentCommandRequest == Command_ADC) {
+    if(idADC_CommandRequest >= 0){
+      int data = analogRead(adcPins[idADC_CommandRequest]);
+      //int data = 4095;
+      Wire.write(data & 0xFF);
+      Wire.write((data >> 8) & 0xFF);
+      Wire.write(adcPins[idADC_CommandRequest]);
+      Serial.printf("Pin ADC %d - valueADC: %d\n", adcPins[idADC_CommandRequest], data);
+    }
+    else{
+      Serial.println("Request - Wrong Id!!");
+    }
   } else {
     Serial.println("Request - Wrong Command!!");
   }
 
   currentCommandRequest = -1;
   idADC_CommandRequest = -1;
+  processing = false; // Release the lock
 }
 
 int checkPin(int pin, const int array[], int size) {
