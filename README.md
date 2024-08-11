@@ -9,10 +9,9 @@
 4. Activar entorno virtual en la terminal
 5. Ejecutar `sudo apt update`
 6. Ejecutar `sudo apt upgrade`
-7. Instalar matplotlib: `pip install matplotlib==3.6.3`
-8. Instalar OpenCV: `pip install opencv-python==4.6.0.66`
+7. Instalar OpenCV: `pip install opencv-python==4.6.0.66`
 
 ### Instalar en el entorno virtual estas librerías:
-
+- `matplotlib==3.6.3`
 - `tfmplus==0.1.0`
 - `simple-pid==2.0.1`
