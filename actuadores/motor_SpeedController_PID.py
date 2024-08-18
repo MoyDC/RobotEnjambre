@@ -35,8 +35,12 @@ class Motor_SpeedController_PID:
 
     def control_loop(self):
         self._is_running = True
+        cont = 0
         while self._is_running:
+            start_time = time.time()
             self.pv = self.calculate_rpm()
+            cont = cont+1
+            #print(f"Cont: {cont} - {self.contador}")
             self.contador = 0
             self.pid.setpoint = self.setpoint
             control_value = self.pid(self.pv)
@@ -47,6 +51,9 @@ class Motor_SpeedController_PID:
                 self.data_queue.get()
             self.data_queue.put((self.setpoint, self.pv), block=False)
             time.sleep(self.delayPID)
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            #print(f"Tiempo transcurrido: {elapsed_time} segundos")
         self.motor.stop()
 
     def set_setpoint(self, setpoint: float):
