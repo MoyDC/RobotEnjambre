@@ -10,8 +10,11 @@ from brujula import Brujula_MechaQMC5883
 from adcESP32 import adc_ESP32
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../actuadores')))
-from motor_SpeedController_PID import create_motor_controller#, data_queue1, data_queue2
+from motor import Motor#, data_queue1, data_queue2
 from servomotor import ServoController
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../moreGPIO')))
+from More_GPIO_ESP32 import MoreGpio_ESP32
 
 #---------------------------------------------------------------------------------------------------------------
 
@@ -70,22 +73,25 @@ print("*** ADC sensor - setup completed. ***")
 #--------------------------------------------------------------------------------------------------------------- 
     
 # Configuración del sistema de control de motores usando PID
-Kp = 2
-Ki = 6
-Kd = 0.01
-max_output = 500
+#Kp = 2
+#Ki = 6
+#Kd = 0.01
+#max_output = 500
 #Pines motor 1
-EN_1 = 17
-IN1_1 = 23
-IN2_1 = 19
-PinEncoder_1 = 27
+#EN_1 = 17
+#IN1_1 = 23
+#IN2_1 = 19
+#PinEncoder_1 = 27
 #Pines motor 2
-EN_2 = 16
-IN1_2 = 18
-IN2_2 = 5
-PinEncoder_2 = 10
-motor1_speedController = create_motor_controller(1, 0x08, EN_1, IN1_1, IN2_1, PinEncoder_1, Kp, Ki, Kd, max_output)
-motor2_speedController = create_motor_controller(1, 0x08, EN_2, IN1_2, IN2_2, PinEncoder_2, Kp, Ki, Kd, max_output)
+#EN_2 = 16
+#IN1_2 = 18
+#IN2_2 = 5
+#PinEncoder_2 = 10
+#motor1_speedController = create_motor_controller(1, 0x08, EN_1, IN1_1, IN2_1, PinEncoder_1, Kp, Ki, Kd, max_output)
+#motor2_speedController = create_motor_controller(1, 0x08, EN_2, IN1_2, IN2_2, PinEncoder_2, Kp, Ki, Kd, max_output)
+commandMotor = MoreGpio_ESP32(bus_number=1, address=0x08)
+motor1 = Motor(bus_number=1, address=0x08, command_motor_I2C = commandMotor._command_Motor_1)
+motor2 = Motor(bus_number=1, address=0x08, command_motor_I2C = commandMotor._command_Motor_2)
 
 print("*** Motor 1 - setup completed. ***")
 print("*** Motor 2 - setup completed. ***")
