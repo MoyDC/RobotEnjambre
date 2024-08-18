@@ -69,16 +69,13 @@ if __name__ == "__main__":
     
     # Manage all threads
     thread_manager = ThreadManager(
-        #Thread_motor1_speedController = motor1_speedController,
-        #Thread_motor2_speedController = motor2_speedController,
         Thread_Led_Programa = Led_Programa,
         Thread_lidar_sensor = lidar_sensor,
         Thread_sensors = sensors,
         Thread_sensor_Infrarrojo = sensor_Infrarrojo,
         Thread_sensorBrujula = sensorBrujula,
         Thread_readADC_ESP32 = readADC_ESP32,
-        Thread_PrintDataSensors = PrintDataSensors)#,
-        #Thread_Camara = camara)
+        Thread_PrintDataSensors = PrintDataSensors)
     
     try:
         running_main_while = True
@@ -171,8 +168,6 @@ if __name__ == "__main__":
             motor1.Stop()
         if motor2 is not None:
             motor2.Stop()
-        #if camara is not None:
-            #camara.stop()
         print("Cleaning up threads...")
         thread_manager.stop_all_threads()
         I2C_ESP32.send_command(I2C_ESP32._command_RSTesp32, 0, 0)

@@ -64,7 +64,7 @@ sensorBrujula.init()
 print("*** Compass sensor - setup completed. ***")
 
 #---------------------------------------------------------------------------------------------------------------
-
+   
 # Crear instancia para leer el adc de la esp32
 readADC_ESP32 = adc_ESP32(bus_number=1, address=0x08, delay=0.01)
 
@@ -73,22 +73,6 @@ print("*** ADC sensor - setup completed. ***")
 #--------------------------------------------------------------------------------------------------------------- 
     
 # Configuración del sistema de control de motores usando PID
-#Kp = 2
-#Ki = 6
-#Kd = 0.01
-#max_output = 500
-#Pines motor 1
-#EN_1 = 17
-#IN1_1 = 23
-#IN2_1 = 19
-#PinEncoder_1 = 27
-#Pines motor 2
-#EN_2 = 16
-#IN1_2 = 18
-#IN2_2 = 5
-#PinEncoder_2 = 10
-#motor1_speedController = create_motor_controller(1, 0x08, EN_1, IN1_1, IN2_1, PinEncoder_1, Kp, Ki, Kd, max_output)
-#motor2_speedController = create_motor_controller(1, 0x08, EN_2, IN1_2, IN2_2, PinEncoder_2, Kp, Ki, Kd, max_output)
 commandMotor = MoreGpio_ESP32(bus_number=1, address=0x08)
 motor1 = Motor(bus_number=1, address=0x08, command_motor_I2C = commandMotor._command_Motor_1)
 motor2 = Motor(bus_number=1, address=0x08, command_motor_I2C = commandMotor._command_Motor_2)
