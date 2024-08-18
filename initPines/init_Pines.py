@@ -64,7 +64,7 @@ sensorBrujula.init()
 print("*** Compass sensor - setup completed. ***")
 
 #---------------------------------------------------------------------------------------------------------------
-
+   
 # Crear instancia para leer el adc de la esp32
 readADC_ESP32 = adc_ESP32(bus_number=1, address=0x08, delay=0.01)
 
