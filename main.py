@@ -168,8 +168,6 @@ if __name__ == "__main__":
             motor1.Stop()
         if motor2 is not None:
             motor2.Stop()
-        #if camara is not None:
-            #camara.stop()
         print("Cleaning up threads...")
         thread_manager.stop_all_threads()
         I2C_ESP32.send_command(I2C_ESP32._command_RSTesp32, 0, 0)
