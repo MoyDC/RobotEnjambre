@@ -6,11 +6,11 @@ class MoreGpio_ESP32:
     def __init__(self, bus_number=1, address=0x08):
         self._bus = SMBus(bus_number)
         self._address = address
-        self._command_output = 100
-        self._command_pwm = 101
-        self._command_servomotor = 102
-        self._command_adc = 103
-        self._command_RSTesp32 = 104
+        self._command_servomotor = 101
+        self._command_adc = 102
+        self._command_Motor_1 = 103
+        self._command_Motor_2 = 104
+        self._command_RSTesp32 = 255
         self.i2c_lock = threading.Lock()  # Lock for I2C access
 
     @property
