@@ -36,8 +36,8 @@ if __name__ == "__main__":
         controlSpeed_thread2.start()
     
         # Configuracion inicial motores
-        motor1_speedController.set_setpoint(100)
-        motor2_speedController.set_setpoint(100)
+        motor1_speedController.set_setpoint(150)
+        motor2_speedController.set_setpoint(150)
         
         
         while True:
@@ -56,6 +56,10 @@ if __name__ == "__main__":
         motor2_speedController.set_setpoint(0)
         
     finally:
+        if motor1_speedController is not None:
+            motor1_speedController.stop(name="Motor 1")
+        if motor2_speedController is not None:
+            motor2_speedController.stop(name="Motor 2")
         controlSpeed_thread1.join()
         controlSpeed_thread2.join()
         print("Programa terminado limpiamente.")

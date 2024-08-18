@@ -48,9 +48,9 @@ class ObjectDetection:
         print("Camara stopped.")
 
         
-#def main():
+def main():
     # Crea una instancia de ObjectDetection con las dimensiones deseadas
-#    camera = ObjectDetection(display_width=640, display_height=480, show_feed=True)
+    camera = ObjectDetection(display_width=640, display_height=480, show_feed=True)
     
     # Variables para medir FPS
 #    fps = 0
@@ -58,11 +58,11 @@ class ObjectDetection:
     
     
     
-#    try:
-#        while True:
-#            print("En   el while")
+    try:
+        while True:
+            print("En   el while")
             
-#            camera.start()
+            camera.start()
             #frame = camera.read_frame()
 
             # Muestra el frame
@@ -84,15 +84,15 @@ class ObjectDetection:
 #            if cv2.waitKey(1) & 0xFF == ord('q'):
 #                break
             
- #   except KeyboardInterrupt:
- #       print("End1")
+    except KeyboardInterrupt:
+        print("End1")
         
-#    except Exception as e:
-#        print(f"Error: {e}")
+    except Exception as e:
+       print(f"Error: {e}")
         
-#    finally:
-#        camera.stop()
-#        print("End2")
+    finally:
+        camera.stop()
+        print("End2")
         
-#if __name__ == "__main__":
-#    main()
+if __name__ == "__main__":
+    main()
