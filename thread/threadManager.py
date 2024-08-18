@@ -32,7 +32,7 @@ class ThreadManager:
         
         for name, sensor in self.sensors.items():
             self.init_thread(name, sensor.start_reading)
-        
+           
         self.print_dots_with_delay(0.5)
         
         self.init_thread("sensor_Infrarrojo", self.sensor_Infrarrojo.start_reading)
