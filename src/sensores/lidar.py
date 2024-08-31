@@ -58,7 +58,7 @@ class LidarSensor:
             except Exception as e:
                 print(f"Sensor lidar - Error reading data: {e}")
 
-    def stop_reading(self):
+    def stop(self):
         self._is_running = False
         print("Sensor lidar stopped.")
 

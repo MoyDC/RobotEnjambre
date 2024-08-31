@@ -1,7 +1,7 @@
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../moreGPIO')))
-from More_GPIO_ESP32 import MoreGpio_ESP32
+from moreGPIO.More_GPIO_ESP32 import MoreGpio_ESP32
 
 class Motor(MoreGpio_ESP32):
     def __init__(self, bus_number=1, address=0x08, command_motor_I2C=0):
@@ -30,22 +30,7 @@ class Motor(MoreGpio_ESP32):
     def get_all_motor_options(self):
         return self._motor_options
 
-    #def setup_servo(self, motor_option, initial_value):
-        # Asegurar que el valor esté en el rango 0-180
-        #value = max(0, min(200, int(initial_value)))
-        
-        #Guardar el valor del servomotor
-        #self.__value_SP_Motor = value
-        
-        # configurar el pin y mandar valor por i2c a la esp32
-        #option = self._motor_options(motor_option)
-        #if option is not None:
-        #    self._motor_configs[motor_option] = {'option': option, 'value': value}
-        #    self.send_command(self._command_I2C, pin, value)
-        #else:
-        #    print(f"Motor option {motor_option} not found.")
-
-    def Stop(self, name="Motor"):
+    def stop(self, name="Motor"):
         # Asegurar que el valor esté en el rango 0-180
         value = 0
         

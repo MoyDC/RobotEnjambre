@@ -1,20 +1,21 @@
 import sys
 import os
+import time
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../sensores')))
-from led import LedController
-from ultrasonicos import UltrasonicSensor
-from lidar import LidarSensor
-from infrarrojo import SensorInfrarrojo
-from brujula import Brujula_MechaQMC5883
-from adcESP32 import adc_ESP32
+from sensores.led import LedController
+from sensores.ultrasonicos import UltrasonicSensor
+from sensores.lidar import LidarSensor
+from sensores.infrarrojo import SensorInfrarrojo
+from sensores.brujula import Brujula_MechaQMC5883
+from sensores.adcESP32 import adc_ESP32
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../actuadores')))
-from motor import Motor#, data_queue1, data_queue2
-from servomotor import ServoController
+from actuadores.motor import Motor#, data_queue1, data_queue2
+from actuadores.servomotor import ServoController
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../moreGPIO')))
-from More_GPIO_ESP32 import MoreGpio_ESP32
+from moreGPIO.More_GPIO_ESP32 import MoreGpio_ESP32
 
 #---------------------------------------------------------------------------------------------------------------
 
@@ -77,6 +78,12 @@ commandMotor = MoreGpio_ESP32(bus_number=1, address=0x08)
 motor1 = Motor(bus_number=1, address=0x08, command_motor_I2C = commandMotor._command_Motor_1)
 motor2 = Motor(bus_number=1, address=0x08, command_motor_I2C = commandMotor._command_Motor_2)
 
+# Configuracion inicial motores
+motor1.stop()
+time.sleep(0.001)
+motor2.stop()
+time.sleep(0.001)
+
 print("*** Motor 1 - setup completed. ***")
 print("*** Motor 2 - setup completed. ***")
 
@@ -93,6 +100,14 @@ servo3 = ServoController(bus_number=1, address=0x08)
 servo1.setup_servo(servo1.get_servo_name_by_pin(pinServo1), 0)
 servo2.setup_servo(servo2.get_servo_name_by_pin(pinServo2), 0)
 servo3.setup_servo(servo3.get_servo_name_by_pin(pinServo3), 0)
+
+# Configuracion inicial servos
+servo1.control_servo(0)
+time.sleep(0.001)
+servo2.control_servo(0)
+time.sleep(0.001)
+servo3.control_servo(0)
+time.sleep(0.001)
 
 print("*** Servomotor 1 - setup completed. ***")
 print("*** Servomotor 2 - setup completed. ***")
