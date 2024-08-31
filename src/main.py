@@ -1,67 +1,20 @@
 import time
 import multiprocessing
-import threading
 from initPines.init_Pines import Led_Programa, lidar_sensor, sensorsNames, sensors, sensor_Infrarrojo, sensorBrujula, readADC_ESP32, motor1, motor2, servo1, servo2, servo3
-from sensores.camara.objectDetection import ObjectDetection
 from sensores.printDataSensors.sensorDataFormatter import SensorDataFormatter
 from thread.threadManager import ThreadManager
-from More_GPIO_ESP32 import MoreGpio_ESP32
+from moreGPIO.More_GPIO_ESP32 import MoreGpio_ESP32
+from process_Camera_Detection import Process_Camera_Detection
 
 # Global flag to indicate if a KeyboardInterrupt was received
-interruption_received = multiprocessing.Event()     
-        
-def proceso_Control_Robot():
-    # codigo proceso_Control_Robot 
-    try:
-        running_process_while = True
-        
-        while running_process_while:
-            #print("Proceso - proceso_pid_motores")
-            time.sleep(0.1)
-        
-            if interruption_received.is_set():
-                running_process_while  = False
-                print("Flag recibida - proceso_Control_Robot")
-                
-    finally:
-        print("End proceso_Control_Robot")
-
-def proceso_camara_deteccion():
-    # codigo proceso_camara_deteccion
-    try:
-        camara = ObjectDetection(display_width=640, display_height=480, show_feed=True)
-        camara_thread = threading.Thread(target=camara.start)
-        camara_thread.start()
-        
-        running_process_while = True
-        
-        while running_process_while:
-            #print("Proceso - proceso_camara_deteccion")
-            time.sleep(0.5)
-            
-            
-            if interruption_received.is_set():
-                running_process_while  = False
-                print("Flag recibida - proceso_camara_deteccion")
-                
-    finally:
-        if camara is not None:
-            camara.stop()
-        
-        if camara_thread.is_alive():
-            camara_thread.join()
-            
-            
-        print("End proceso_camara_deteccion")
-
+interruption_received = multiprocessing.Event()  
 
 if __name__ == "__main__":
     # Crear los procesos
-    proceso1 = multiprocessing.Process(target=proceso_Control_Robot)
-    proceso2 = multiprocessing.Process(target=proceso_camara_deteccion)
+    proceso1 = multiprocessing.Process(target=Process_Camera_Detection)
     
+    # Resetear ESP32
     I2C_ESP32 = MoreGpio_ESP32(bus_number=1, address=0x08)
-    #camara = ObjectDetection(display_width=640, display_height=480, show_feed=False)
     
     # Crear instancia para imprimir los datos de los sensores
     PrintDataSensors = SensorDataFormatter(sensors, lidar_sensor, sensor_Infrarrojo, sensorBrujula, readADC_ESP32, sensorsNames)
@@ -76,7 +29,7 @@ if __name__ == "__main__":
         Thread_sensorBrujula = sensorBrujula,
         Thread_readADC_ESP32 = readADC_ESP32,
         Thread_PrintDataSensors = PrintDataSensors)
-    
+  
     try:
         running_main_while = True
         I2C_ESP32.send_command(I2C_ESP32._command_RSTesp32,0,0)
@@ -85,33 +38,9 @@ if __name__ == "__main__":
         # Inicializar todos los hilos
         thread_manager.init_all_threads()
         
-        # Configuracion inicial motores
-        motor1.Stop()
-        time.sleep(0.001)
-        motor2.Stop()
-        time.sleep(0.001)
-        
-        # Configuracion inicial servos
-        servo1.control_servo(0)
-        time.sleep(0.001)
-        servo2.control_servo(0)
-        time.sleep(0.001)
-        servo3.control_servo(0)
-        time.sleep(0.001)
-        
         # Iniciar los procesos
         proceso1.start()
-        proceso2.start()
         
-        #PrintDataSensors.stop()
-        #camara.stop()
-        
-        
-        # Esperar a que los procesos terminen
-        #proceso2.join()
-        #proceso3.join()
-
-        #print("Todos los procesos han terminado.") 
         cont = 0
         while running_main_while:
             start_time = time.time()
@@ -143,7 +72,7 @@ if __name__ == "__main__":
         
     except KeyboardInterrupt:
         print("\nDeteniendo procesos...\n")
-        interruption_received.set()  # Set the flag to indi
+        interruption_received.set()  # Set the flag to stop processes
     
     finally:
         #stop_threads_proceso_principal()
@@ -153,7 +82,7 @@ if __name__ == "__main__":
         if Led_Programa is not None:
             Led_Programa.stop()
         if lidar_sensor is not None:
-            lidar_sensor.stop_reading()
+            lidar_sensor.stop()
         for sensor_name in sensorsNames:
             sensor = sensors.get(sensor_name)
             if sensor is not None:
@@ -165,19 +94,19 @@ if __name__ == "__main__":
         if readADC_ESP32 is not None:
             readADC_ESP32.stop()
         if motor1 is not None:
-            motor1.Stop()
+            motor1.stop()
         if motor2 is not None:
-            motor2.Stop()
+            motor2.stop()
         print("Cleaning up threads...")
         thread_manager.stop_all_threads()
         I2C_ESP32.send_command(I2C_ESP32._command_RSTesp32, 0, 0)
         print("Programa terminado limpiamente.")
         
+        # Delay
         time.sleep(1)
         
+        # Detener proceso
         proceso1.terminate()
-        proceso2.terminate()
-        
         proceso1.join()
-        proceso2.join()
+        
         print("\nTodos los procesos han terminado limpiamente.")

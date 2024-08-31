@@ -1,7 +1,7 @@
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../moreGPIO')))
-from More_GPIO_ESP32 import MoreGpio_ESP32
+from moreGPIO.More_GPIO_ESP32 import MoreGpio_ESP32
 
 
 class ServoController(MoreGpio_ESP32):
