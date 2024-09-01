@@ -1,14 +1,12 @@
 import time
 import threading
 import multiprocessing
-from sensores.camera.Camera import Camera_Picamera2
+from hardware.sensores.Camera import Camera_Picamera2
 
 # Global flag to indicate if a KeyboardInterrupt was received
 interruption_received = multiprocessing.Event() 
 
-def Process_Camera_Detection():
-    #from main import interruption_received
-    
+def Process_Camera_Detection():    
     # codigo proceso_camara_deteccion
     try:
         camera = Camera_Picamera2(display_width=640, display_height=480, show_feed=True)
