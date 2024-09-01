@@ -16,6 +16,7 @@ def Process_Camera_Detection():
         camara_thread.start()
         
         running_process_while = True
+        time.sleep(2)
         
         while running_process_while:
             #print("Proceso - proceso_camara_deteccion")
@@ -26,9 +27,11 @@ def Process_Camera_Detection():
             if interruption_received.is_set():
                 running_process_while  = False
                 print("Flag recibida - proceso_camara_deteccion")
-                
+
+    except KeyboardInterrupt:
+        print("\nInterrupción recibida en proceso de cámara...\n")
+
     finally:
-        time.sleep(0.5)
         if camera is not None:
             camera.stop()
         

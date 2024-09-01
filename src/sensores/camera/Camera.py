@@ -39,8 +39,8 @@ class Camera_Picamera2:
         """Public method to get a frame from the queue."""
         with self.queue_lock:
             if not self.frame_queue.empty():
-                size = self.frame_queue.qsize()
-                print(f"Queue size: {size}")
+                #size = self.frame_queue.qsize()
+                #print(f"Queue size: {size}")
                 return self.frame_queue.get()
             else:
                 return None
