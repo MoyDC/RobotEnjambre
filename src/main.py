@@ -1,9 +1,9 @@
 import time
 import multiprocessing
-from initPines.init_Pines import Led_Programa, lidar_sensor, sensorsNames, sensors, sensor_Infrarrojo, sensorBrujula, readADC_ESP32, motor1, motor2, servo1, servo2, servo3
-from sensores.printDataSensors.sensorDataFormatter import SensorDataFormatter
-from thread.threadManager import ThreadManager
-from moreGPIO.More_GPIO_ESP32 import MoreGpio_ESP32
+from utils.initPines.init_Pines import Led_Programa, lidar_sensor, sensorsNames, sensors, sensor_Infrarrojo, sensorBrujula, readADC_ESP32, motor1, motor2, servo1, servo2, servo3
+from utils.printDataSensors.sensorDataFormatter import SensorDataFormatter
+from utils.thread.threadManager import ThreadManager
+from hardware.moreGPIO.More_GPIO_ESP32 import MoreGpio_ESP32
 from process_Camera_Detection import Process_Camera_Detection, interruption_received
 
 if __name__ == "__main__":
@@ -33,7 +33,9 @@ if __name__ == "__main__":
         time.sleep(1)
         
         # Inicializar todos los hilos
-        thread_manager.init_all_threads()
+        if not thread_manager.init_all_threads(): 
+            print("\n***Not all threads were initialized, stopping the program.***")
+            running_main_while  = False
         
         # Iniciar los procesos
         proceso1.start()
@@ -41,6 +43,16 @@ if __name__ == "__main__":
         #PrintDataSensors.stop()
         cont = 0
         while running_main_while:
+            if not I2C_ESP32.test_is_i2c_working():
+                running_main_while  = False
+                print("I2c communication error")
+                break
+            
+            if interruption_received.is_set():
+                running_main_while  = False
+                break
+
+            #print("Working")
             start_time = time.time()
             
             motor1.Forward(150)
@@ -60,45 +72,18 @@ if __name__ == "__main__":
             
             end_time = time.time()
             elapsed_time = end_time - start_time
-            #print(f"Tiempo transcurrido: {elapsed_time} segundos")
-            
-            if interruption_received.is_set():
-                running_main_while  = False
-                print("Flag recibida - main")
-            
-        
+            #print(f"Tiempo transcurrido: {elapsed_time} segundos")  
         
     except KeyboardInterrupt:
         print("\nDeteniendo procesos...\n")
         interruption_received.set()  # Set the flag to stop processes
     
     finally:
-        #stop_threads_proceso_principal()
         print("\nInterrupion recibida (Ctrl+C), deteniendo todos los hilos procesos principal...")
-        if PrintDataSensors is not None:
-            PrintDataSensors.stop()
-        if Led_Programa is not None:
-            Led_Programa.stop()
-        if lidar_sensor is not None:
-            lidar_sensor.stop()
-        for sensor_name in sensorsNames:
-            sensor = sensors.get(sensor_name)
-            if sensor is not None:
-                sensor.stop()
-        if sensor_Infrarrojo is not None:
-            sensor_Infrarrojo.stop()
-        if sensorBrujula is not None:
-            sensorBrujula.stop()
-        if readADC_ESP32 is not None:
-            readADC_ESP32.stop()
-        if motor1 is not None:
-            motor1.stop()
-        if motor2 is not None:
-            motor2.stop()
-        print("Cleaning up threads...")
         thread_manager.stop_all_threads()
+        print("Cleaning up threads...")
+        
         I2C_ESP32.send_command(I2C_ESP32._command_RSTesp32, 0, 0)
-        print("Programa terminado limpiamente.")
         
         # Delay
         time.sleep(1)
