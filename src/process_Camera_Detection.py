@@ -1,7 +1,7 @@
 import time
 import threading
 import multiprocessing
-from hardware.sensores.Camera import Camera_Picamera2
+from hardware.sensores.camera import Camera_Picamera2
 
 # Global flag to indicate if a KeyboardInterrupt was received
 interruption_received = multiprocessing.Event() 
