@@ -4,10 +4,7 @@ from initPines.init_Pines import Led_Programa, lidar_sensor, sensorsNames, senso
 from sensores.printDataSensors.sensorDataFormatter import SensorDataFormatter
 from thread.threadManager import ThreadManager
 from moreGPIO.More_GPIO_ESP32 import MoreGpio_ESP32
-from process_Camera_Detection import Process_Camera_Detection
-
-# Global flag to indicate if a KeyboardInterrupt was received
-interruption_received = multiprocessing.Event()  
+from process_Camera_Detection import Process_Camera_Detection, interruption_received
 
 if __name__ == "__main__":
     # Crear los procesos
@@ -41,6 +38,7 @@ if __name__ == "__main__":
         # Iniciar los procesos
         proceso1.start()
         
+        PrintDataSensors.stop()
         cont = 0
         while running_main_while:
             start_time = time.time()
@@ -106,7 +104,9 @@ if __name__ == "__main__":
         time.sleep(1)
         
         # Detener proceso
-        proceso1.terminate()
-        proceso1.join()
-        
+        if proceso1.is_alive():
+            proceso1.terminate()
+            proceso1.join()
+            print("Proceso 1 terminado.")
+
         print("\nTodos los procesos han terminado limpiamente.")
