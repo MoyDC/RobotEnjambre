@@ -2,20 +2,20 @@ import sys
 import os
 import time
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../sensores')))
-from sensores.led import LedController
-from sensores.ultrasonicos import UltrasonicSensor
-from sensores.lidar import LidarSensor
-from sensores.infrarrojo import SensorInfrarrojo
-from sensores.brujula import Brujula_MechaQMC5883
-from sensores.adcESP32 import adc_ESP32
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../hardware')))
+from hardware.sensores.led import LedController
+from hardware.sensores.ultrasonicos import UltrasonicSensor
+from hardware.sensores.lidar import LidarSensor
+from hardware.sensores.infrarrojo import SensorInfrarrojo
+from hardware.sensores.brujula import Brujula_MechaQMC5883
+from hardware.sensores.adcESP32 import adc_ESP32
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../actuadores')))
-from actuadores.motor import Motor#, data_queue1, data_queue2
-from actuadores.servomotor import ServoController
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../hardware')))
+from hardware.actuadores.motor import Motor#, data_queue1, data_queue2
+from hardware.actuadores.servomotor import ServoController
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../moreGPIO')))
-from moreGPIO.More_GPIO_ESP32 import MoreGpio_ESP32
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../hardware')))
+from hardware.moreGPIO.More_GPIO_ESP32 import MoreGpio_ESP32
 
 #---------------------------------------------------------------------------------------------------------------
 

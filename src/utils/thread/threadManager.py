@@ -24,24 +24,46 @@ class ThreadManager:
             print(f"Thread {name} is already running.")
 
     def init_all_threads(self):
-        
+        """Initialize and start all threads if their corresponding objects are not None."""
+        # Check if each thread object is not None before initializing
+        if self.Led_Programa is None:
+            print("Led_Programa is None, skipping initialization.")
+            return False
         self.init_thread("Led_Programa", self.Led_Programa.blink)
+
+        if self.lidar_sensor is None:
+            print("lidar_sensor is None, skipping initialization.")
+            return False
         self.init_thread("lidar_sensor", self.lidar_sensor.start_reading)
 
         self.print_dots_with_delay(0.1)
-        
         for name, sensor in self.sensors.items():
-            self.init_thread(name, sensor.start_reading)
-           
+            if sensor is None:
+                print(f"Sensor {name} is None, skipping initialization.")
+                return False
+            self.init_thread(name, sensor.start_reading)  
+
         self.print_dots_with_delay(0.5)
-        
+        if self.sensor_Infrarrojo is None:
+            print("sensor_Infrarrojo is None, skipping initialization.")
         self.init_thread("sensor_Infrarrojo", self.sensor_Infrarrojo.start_reading)
-        self.init_thread("sensorBrujula", self.sensorBrujula.start_reading)
+
+        if self.sensorBrujula is None:
+            print("sensorBrujula is None, skipping initialization.")
+            return False
+        self.init_thread("sensorBrujula", self.sensorBrujula.start_reading)  
+
+        if self.readADC_ESP32 is None:
+            print("readADC_ESP32 is None, skipping initialization.")
+            return False
         self.init_thread("readADC_ESP32", self.readADC_ESP32.start)
-        
+
         self.print_dots_with_delay(0.5)
-        
-        self.init_thread("PrintDataSensors", self.PrintDataSensors.start)
+        if self.PrintDataSensors is None:
+            print("PrintDataSensors is None, skipping initialization.")
+            return False
+        self.init_thread("PrintDataSensors", self.PrintDataSensors.start) 
+        return True
 
     def print_dots_with_delay(self, delay):
         start_time = time.time()
@@ -53,30 +75,29 @@ class ThreadManager:
     def stop_thread(self, name):
         if name in self.threads:
             thread = self.threads.pop(name)
-            # Aquí deberías implementar una manera segura de detener el hilo
-            # Por ejemplo, si el hilo está en un bucle, usa una variable de condición
             thread.join()  # Espera a que el hilo termine su ejecución
             print(f"Thread {name} has been stopped.")
         else:
             print(f"Thread {name} is not running.")
 
     def stop_all_threads(self):
+        if self.Led_Programa is not None:
+            self.Led_Programa.stop()
+        if self.lidar_sensor is not None:
+            self.lidar_sensor.stop()
+        for name, sensor in self.sensors.items():
+            if sensor is not None:
+                sensor.stop()
+        if self.sensor_Infrarrojo is not None:
+            self.sensor_Infrarrojo.stop()
+        if self.sensorBrujula is not None:
+            self.sensorBrujula.stop()
+        if self.readADC_ESP32 is not None:
+            self.readADC_ESP32.stop()
+        if self.PrintDataSensors is not None:
+            self.PrintDataSensors.stop()
+        print(" ")
         for name in list(self.threads.keys()):
             self.stop_thread(name)
-            #name.join()
-        #for thread in self.threads:
-            #thread.join()
+        print(" ")
 
-# Uso del ThreadManager
-# Asegúrate de pasar las instancias necesarias al inicializar el ThreadManager
-# motor1_speedController, motor2_speedController, Led_Programa, lidar_sensor, sensors, sensor_Infrarrojo, sensorBrujula, readADC_ESP32, PrintDataSensors
-#thread_manager = ThreadManager(motor1_speedController, motor2_speedController, Led_Programa, lidar_sensor, sensors, sensor_Infrarrojo, sensorBrujula, readADC_ESP32, PrintDataSensors)
-
-# Iniciar los hilos
-#thread_manager.init_all_threads(data_queue1, data_queue2)
-
-# Para detener un hilo específico
-# thread_manager.stop_thread("sensor_Infrarrojo")
-
-# Para detener todos los hilos
-# thread_manager.stop_all_threads()

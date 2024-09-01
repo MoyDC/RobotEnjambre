@@ -14,8 +14,8 @@ class SensorDataFormatter:
         self._thread = None
 
     def format_data(self):
+        """Format the sensor data into a readable string."""
         self.contador_datos += 1
-
         S1 = self.sensors.get(self.sensorsNames[0]).get_data()
         S2 = self.sensors.get(self.sensorsNames[1]).get_data()
         S3 = self.sensors.get(self.sensorsNames[2]).get_data()
@@ -27,7 +27,6 @@ class SensorDataFormatter:
         SensorLDR2 = self.readADC.get_dataADC_LDR2()
         ADC1 = self.readADC.get_dataADC1()
         ADC2 = self.readADC.get_dataADC2()
-
         formatted_data = (
             f"Cont {self.contador_datos}: "
             f"{S1[0]}: {S1[1]:.2f} cm - "
@@ -38,24 +37,22 @@ class SensorDataFormatter:
             f"Infra: {Infrarrojo[1]} - "
             f"Bruj: {AngBrujula[1]:.2f} - "
             f"LDR1: {SensorLDR1[1]} - "
-            f"LDR2: {SensorLDR2[1]} -"
+            f"LDR2: {SensorLDR2[1]} - "
             f"ADC1: {ADC1[1]} - "
             f"ADC2: {ADC2[1]}"
         )
         return formatted_data
 
     def start(self, delay=0.1, Run=True):
+        """Start the data formatting and printing loop."""
         self._is_running = True
         time.sleep(0.5)
         while self._is_running and Run:
-            start_time = time.time()
             formatted_data = self.format_data()
             print(formatted_data)
             time.sleep(delay)  # Ajusta el tiempo de espera según sea necesario
-            end_time = time.time()
-            elapsed_time = end_time - start_time
-            #print(f"Tiempo transcurrido: {elapsed_time} segundos")  # Tiempo aproximado 0.05s
 
     def stop(self):
+        """Stop the data formatting process."""
         self._is_running = False
         print("SensorDataFormatter stopped.")
