@@ -39,7 +39,8 @@ class Camera_Picamera2:
             frame = self.picamera2.capture_array()
             if frame is None: continue
             with self.queue_lock:
-                self.__add_frame_to_Queue(frame)
+                frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  # Convertir de RGB a BGR
+                self.__add_frame_to_Queue(frame_bgr)
             
     def get_frame(self):
         """Retrieve a frame from the queue."""
@@ -54,7 +55,7 @@ class Camera_Picamera2:
             print("No frames to show.")
             return
         if self.show_feed:
-            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+            #frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
             frame_resized = cv2.resize(frame, (self.display_width, self.display_height))
             cv2.imshow('Camera', frame_resized)
             cv2.waitKey(200)     

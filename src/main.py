@@ -40,7 +40,7 @@ if __name__ == "__main__":
         # Iniciar los procesos
         proceso1.start()
 
-        #PrintDataSensors.stop()
+        PrintDataSensors.stop()
         cont = 0
         while running_main_while:
             if not I2C_ESP32.test_is_i2c_working():
