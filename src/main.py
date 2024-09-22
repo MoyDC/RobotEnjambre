@@ -16,6 +16,7 @@ if __name__ == "__main__":
     # Crear instancia para imprimir los datos de los sensores
     PrintDataSensors = SensorDataFormatter(sensors, lidar_sensor, sensor_Infrarrojo, sensorBrujula, readADC_ESP32, sensorsNames)
     print("Print data sensors - setup completed.")
+    #PrintDataSensors.stop()
     
     # Manage all threads
     thread_manager = ThreadManager(
@@ -38,9 +39,9 @@ if __name__ == "__main__":
             running_main_while  = False
         
         # Iniciar los procesos
-        proceso1.start()
+        #proceso1.start()
 
-        PrintDataSensors.stop()
+        
         cont = 0
         while running_main_while:
             if not I2C_ESP32.test_is_i2c_working():

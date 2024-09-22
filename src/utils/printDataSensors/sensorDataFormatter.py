@@ -18,8 +18,6 @@ class SensorDataFormatter:
         self.contador_datos += 1
         S1 = self.sensors.get(self.sensorsNames[0]).get_data()
         S2 = self.sensors.get(self.sensorsNames[1]).get_data()
-        S3 = self.sensors.get(self.sensorsNames[2]).get_data()
-        S4 = self.sensors.get(self.sensorsNames[3]).get_data()
         Lidar_cm = self.lidar_sensor.get_data()
         Infrarrojo = self.sensor_Infrarrojo.get_data()
         AngBrujula = self.sensorBrujula.get_data()
@@ -31,8 +29,6 @@ class SensorDataFormatter:
             f"Cont {self.contador_datos}: "
             f"{S1[0]}: {S1[1]:.2f} cm - "
             f"{S2[0]}: {S2[1]:.2f} cm - "
-            f"{S3[0]}: {S3[1]:.2f} cm - "
-            f"{S4[0]}: {S4[1]:.2f} cm - "
             f"Lidar: {Lidar_cm[1]} cm - "
             f"Infra: {Infrarrojo[1]} - "
             f"Bruj: {AngBrujula[1]:.2f} - "
