@@ -31,15 +31,20 @@ class Camera_Picamera2:
             self.frame_queue.get()  # Remove the oldest data to maintain the size
         self.frame_queue.put(frame)
 
-    def _capture_frames(self, delay_reduce_CPU = 0.005):
+    def _capture_frames(self, delay_reduce_CPU = 0.05):
         """Capture frames from the camera."""
         self._is_running_capture_frames = True
         while self._is_running_capture_frames:
+            start_time = time.time() # Inicia el temporizador
             time.sleep(delay_reduce_CPU)  # Sleep to reduce CPU usage
             frame = self.picamera2.capture_array()
             if frame is None: continue
             with self.queue_lock:
-                self.__add_frame_to_Queue(frame)
+                frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  # Convertir de RGB a BGR
+                self.__add_frame_to_Queue(frame_bgr)
+            end_time = time.time() # Finaliza el temporizador
+            elapsed_time = end_time - start_time # Calcula el tiempo transcurrido
+            #print(f"Time capture frame: {elapsed_time}\n")
             
     def get_frame(self):
         """Retrieve a frame from the queue."""
@@ -48,16 +53,16 @@ class Camera_Picamera2:
                 return None
             return self.frame_queue.get() 
 
-    def show_frame(self, frame):
+    def show_frame(self, frame, delay_between_frames=200):
         """Display the frame."""
         if frame is None:
             print("No frames to show.")
             return
         if self.show_feed:
-            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+            #frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
             frame_resized = cv2.resize(frame, (self.display_width, self.display_height))
             cv2.imshow('Camera', frame_resized)
-            cv2.waitKey(200)     
+            cv2.waitKey(delay_between_frames)     
 
     def stop(self):
         """Stop capturing frames and close the camera."""

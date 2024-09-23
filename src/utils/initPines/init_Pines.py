@@ -17,6 +17,8 @@ from hardware.actuadores.servomotor import ServoController
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../hardware')))
 from hardware.moreGPIO.More_GPIO_ESP32 import MoreGpio_ESP32
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../utils')))
+from utils.batteryMonitor.BatteryMonitorController import BatteryMonitorController
 #---------------------------------------------------------------------------------------------------------------
 
 # Crear una instancia de LedController para el led Programa
@@ -37,12 +39,10 @@ print("*** Lidar Sensor - setup completed. ***")
 #---------------------------------------------------------------------------------------------------------------
 
 # Configuración de los sensores Ultrasonicos
-sensorsNames = ["S1", "S2", "S3", "S4"]
+sensorsNames = ["S1", "S2"]
 sensor_configs = [
     {"name": sensorsNames[0], "echo": 16, "trigger": 26},
-    {"name": sensorsNames[1], "echo": 5, "trigger": 6},
-    {"name": sensorsNames[2], "echo": 7, "trigger": 1},
-    {"name": sensorsNames[3], "echo": 25, "trigger": 8}
+    {"name": sensorsNames[1], "echo": 5, "trigger": 6}
 ]
 # Crear instancias de los sensores y almacenarlas en un diccionario
 sensors = {config['name']: UltrasonicSensor(config['echo'], config['trigger'], config['name']) for config in sensor_configs}
@@ -52,7 +52,7 @@ print("*** Ultrasonic Sensors - setup completed. ***")
 #---------------------------------------------------------------------------------------------------------------
 
 # Crear instancia para el sensor infrarrojo
-sensor_Infrarrojo = SensorInfrarrojo(pin=20)
+sensor_Infrarrojo = SensorInfrarrojo(pin=27)
 
 print("*** Infrared sensor - setup completed. ***")
 
@@ -115,4 +115,6 @@ print("*** Servomotor 3 - setup completed. ***")
 
 #---------------------------------------------------------------------------------------------------------------
 
-
+batteryMonitor = BatteryMonitorController(adc_instance=readADC_ESP32, adc_max_value=4095, adc1_target_value=3070, adc2_target_value=3686, 
+                                          red_pin_RGB1=11, green_pin_RGB1=8, blue_pin_RGB1=7, red_pin_RGB2=24, green_pin_RGB2=4, blue_pin_RGB2=25)
+print("*** Baterry Monitor - setup completed. ***")
