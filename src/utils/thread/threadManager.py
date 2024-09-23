@@ -4,7 +4,7 @@ import time
 class ThreadManager:
     def __init__(self, Thread_Led_Programa=None, Thread_lidar_sensor=None, Thread_sensors=None,
                  Thread_sensor_Infrarrojo=None, Thread_sensorBrujula=None, Thread_readADC_ESP32=None,
-                 Thread_PrintDataSensors=None): #, Thread_Camara=None, ,
+                 Thread_PrintDataSensors=None, Thread_BatteryMonitor=None): #, Thread_Camara=None, ,
         self.threads = {}  # Diccionario para almacenar referencias de hilos
         self.Led_Programa = Thread_Led_Programa
         self.lidar_sensor = Thread_lidar_sensor
@@ -13,6 +13,7 @@ class ThreadManager:
         self.sensorBrujula = Thread_sensorBrujula
         self.readADC_ESP32 = Thread_readADC_ESP32
         self.PrintDataSensors = Thread_PrintDataSensors
+        self.BatteryMonitor = Thread_BatteryMonitor
 
     def init_thread(self, name, target, *args):
         if name not in self.threads:
@@ -63,6 +64,12 @@ class ThreadManager:
             print("PrintDataSensors is None, skipping initialization.")
             return False
         self.init_thread("PrintDataSensors", self.PrintDataSensors.start) 
+        
+        if self.BatteryMonitor is None:
+            print("BatteryMonitor is None, skipping initialization.")
+            return False
+        self.init_thread("BatteryMonitor", self.BatteryMonitor.start) 
+
         return True
 
     def print_dots_with_delay(self, delay):
@@ -96,6 +103,9 @@ class ThreadManager:
             self.readADC_ESP32.stop()
         if self.PrintDataSensors is not None:
             self.PrintDataSensors.stop()
+        if self.BatteryMonitor is not None:
+            self.BatteryMonitor.stop()
+            
         print(" ")
         for name in list(self.threads.keys()):
             self.stop_thread(name)

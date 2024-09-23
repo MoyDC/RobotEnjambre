@@ -17,6 +17,8 @@ from hardware.actuadores.servomotor import ServoController
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../hardware')))
 from hardware.moreGPIO.More_GPIO_ESP32 import MoreGpio_ESP32
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../utils')))
+from utils.batteryMonitor.BatteryMonitorController import BatteryMonitorController
 #---------------------------------------------------------------------------------------------------------------
 
 # Crear una instancia de LedController para el led Programa
@@ -113,4 +115,6 @@ print("*** Servomotor 3 - setup completed. ***")
 
 #---------------------------------------------------------------------------------------------------------------
 
-
+batteryMonitor = BatteryMonitorController(adc_instance=readADC_ESP32, adc_max_value=4095, adc1_target_value=3070, adc2_target_value=3686, 
+                                          red_pin_RGB1=11, green_pin_RGB1=8, blue_pin_RGB1=7, red_pin_RGB2=24, green_pin_RGB2=4, blue_pin_RGB2=25)
+print("*** Baterry Monitor - setup completed. ***")

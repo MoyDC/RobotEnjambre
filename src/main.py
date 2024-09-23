@@ -1,6 +1,6 @@
 import time
 import multiprocessing
-from utils.initPines.init_Pines import Led_Programa, lidar_sensor, sensorsNames, sensors, sensor_Infrarrojo, sensorBrujula, readADC_ESP32, motor1, motor2, servo1, servo2, servo3
+from utils.initPines.init_Pines import Led_Programa, lidar_sensor, sensorsNames, sensors, sensor_Infrarrojo, sensorBrujula, readADC_ESP32, motor1, motor2, servo1, servo2, servo3, batteryMonitor
 from utils.printDataSensors.sensorDataFormatter import SensorDataFormatter
 from utils.thread.threadManager import ThreadManager
 from hardware.moreGPIO.More_GPIO_ESP32 import MoreGpio_ESP32
@@ -26,18 +26,20 @@ if __name__ == "__main__":
         Thread_sensor_Infrarrojo = sensor_Infrarrojo,
         Thread_sensorBrujula = sensorBrujula,
         Thread_readADC_ESP32 = readADC_ESP32,
-        Thread_PrintDataSensors = PrintDataSensors)
+        Thread_PrintDataSensors = PrintDataSensors,
+        Thread_BatteryMonitor = batteryMonitor)
   
     try:
         running_main_while = True
         I2C_ESP32.send_command(I2C_ESP32._command_RSTesp32,0,0)
-        time.sleep(1)
+        #time.sleep(1)
         
         # Inicializar todos los hilos
         if not thread_manager.init_all_threads(): 
             print("\n***Not all threads were initialized, stopping the program.***")
             running_main_while  = False
-        
+        time.sleep(2)
+
         # Iniciar los procesos
         #proceso1.start()
 
@@ -52,6 +54,16 @@ if __name__ == "__main__":
             if interruption_received.is_set():
                 running_main_while  = False
                 break
+            
+            if not batteryMonitor.is_voltage_adc1_in_range():
+                running_main_while  = False
+                print("Battery in ADC1 has reached its limit")
+                break;
+            
+            if not batteryMonitor.is_voltage_adc2_in_range():
+                running_main_while  = False
+                print("Battery in ADC2 has reached its limit")
+                break;
 
             #print("Working")
             start_time = time.time()
@@ -78,7 +90,7 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("\nDeteniendo procesos...\n")
         interruption_received.set()  # Set the flag to stop processes
-    
+
     finally:
         print("\nInterrupion recibida (Ctrl+C), deteniendo todos los hilos procesos principal...")
         thread_manager.stop_all_threads()
@@ -94,5 +106,7 @@ if __name__ == "__main__":
             proceso1.terminate()
             proceso1.join()
             print("Proceso 1 terminado.")
-
-        print("\nTodos los procesos han terminado limpiamente.")
+        
+        batteryMonitor.indicate_battery_limit()
+        input("Press Enter to stop the program: ")
+        print("\nAll processes have finished cleanly.")     
