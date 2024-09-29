@@ -19,6 +19,9 @@ from hardware.moreGPIO.More_GPIO_ESP32 import MoreGpio_ESP32
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../utils')))
 from utils.batteryMonitor.BatteryMonitorController import BatteryMonitorController
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../utils')))
+from utils.behavior_Rules.behavior_Rules_Robot import BehaviorRulesRobot
 #---------------------------------------------------------------------------------------------------------------
 
 # Crear una instancia de LedController para el led Programa
@@ -118,3 +121,9 @@ print("*** Servomotor 3 - setup completed. ***")
 batteryMonitor = BatteryMonitorController(adc_instance=readADC_ESP32, adc_max_value=4095, adc1_target_value=3070, adc2_target_value=3686, 
                                           red_pin_RGB1=11, green_pin_RGB1=8, blue_pin_RGB1=7, red_pin_RGB2=24, green_pin_RGB2=4, blue_pin_RGB2=25)
 print("*** Baterry Monitor - setup completed. ***")
+
+#---------------------------------------------------------------------------------------------------------------
+
+robot_rules = BehaviorRulesRobot(instance_lidar_sensor=lidar_sensor, instance_sensors=sensors, sensorsNames=sensorsNames, instance_readADC=readADC_ESP32, 
+                 value_repulsion_radius=10, value_orientation_radius=20, value_attraction_radius=30, value_influence_radius=1500);
+print("*** Behavior Rules Robot - setup completed. ***")
