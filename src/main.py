@@ -1,6 +1,6 @@
 import time
 import multiprocessing
-from utils.initPines.init_Pines import Led_Programa, lidar_sensor, sensorsNames, sensors, sensor_Infrarrojo, sensorBrujula, readADC_ESP32, motor1, motor2, servo1, servo2, servo3, batteryMonitor
+from utils.initPines.init_Pines import Led_Programa, lidar_sensor, sensorsNames, sensors, sensor_Infrarrojo, sensorBrujula, readADC_ESP32, motor1, motor2, servo1, servo2, servo3, batteryMonitor, robot_rules
 from utils.printDataSensors.sensorDataFormatter import SensorDataFormatter
 from utils.thread.threadManager import ThreadManager
 from hardware.moreGPIO.More_GPIO_ESP32 import MoreGpio_ESP32
@@ -16,7 +16,6 @@ if __name__ == "__main__":
     # Crear instancia para imprimir los datos de los sensores
     PrintDataSensors = SensorDataFormatter(sensors, lidar_sensor, sensor_Infrarrojo, sensorBrujula, readADC_ESP32, sensorsNames)
     print("Print data sensors - setup completed.")
-    #PrintDataSensors.stop()
     
     # Manage all threads
     thread_manager = ThreadManager(
@@ -28,7 +27,9 @@ if __name__ == "__main__":
         Thread_readADC_ESP32 = readADC_ESP32,
         Thread_PrintDataSensors = PrintDataSensors,
         Thread_BatteryMonitor = batteryMonitor)
-  
+    
+    
+
     try:
         running_main_while = True
         I2C_ESP32.send_command(I2C_ESP32._command_RSTesp32,0,0)
@@ -39,6 +40,7 @@ if __name__ == "__main__":
             print("\n***Not all threads were initialized, stopping the program.***")
             running_main_while  = False
         time.sleep(2)
+       # PrintDataSensors.stop()
 
         # Iniciar los procesos
         #proceso1.start()
@@ -55,15 +57,18 @@ if __name__ == "__main__":
                 running_main_while  = False
                 break
             
-            if not batteryMonitor.is_voltage_adc1_in_range():
-                running_main_while  = False
-                print("Battery in ADC1 has reached its limit")
-                break;
+            #if not batteryMonitor.is_voltage_adc1_in_range():
+            #    running_main_while  = False
+            #    print("Battery in ADC1 has reached its limit")
+            #    break;
             
-            if not batteryMonitor.is_voltage_adc2_in_range():
-                running_main_while  = False
-                print("Battery in ADC2 has reached its limit")
-                break;
+            #if not batteryMonitor.is_voltage_adc2_in_range():
+            #    running_main_while  = False
+            #    print("Battery in ADC2 has reached its limit")
+            #    break;  
+            
+            action_in, action = robot_rules.behavior_rules()
+            print(f"{action_in} - {action}")
 
             #print("Working")
             start_time = time.time()
