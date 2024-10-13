@@ -24,8 +24,8 @@ def Process_Camera_Detection():
         led_Detect_thread = threading.Thread(target=led_Detect.create_blue_led_detection_overlays)
         led_Detect_thread.start()
 
-        #green_led_Detect = threading.Thread(target=led_Detect.create_green_led_detection_overlays)
-        #green_led_Detect.start()
+        green_led_Detect = threading.Thread(target=led_Detect.create_green_led_detection_overlays)
+        green_led_Detect.start()
 
         running_process_while = True
         time.sleep(2)
@@ -35,14 +35,19 @@ def Process_Camera_Detection():
             start_time = time.time() # Inicia el temporizador
             time.sleep(0.01)
             
-            led_overlay = led_Detect.get_blue_led_overlay()
+            led_overlay = led_Detect.get_led_overlay()
             frame = led_overlay[0]
             mask_led_overlay = led_overlay[1]
 
             if frame is None or mask_led_overlay is None:
-                print("None")
+                print("No frame to show in window")
                 time.sleep(0.1)
                 continue  # Si no hay frame u overlay, pasa a la siguiente iteración del ciclo
+            
+            color_object = led_overlay[2]
+            mask_original = led_overlay[3]
+            result, percentage = led_Detect.analyze_position_object_in_mask(mask_original)
+            print(result)
 
             frame_led = cv2.addWeighted(frame, 0.4, mask_led_overlay, 0.6, 0) # Superponer la imagen del color detectado sobre el frame original
             camera.show_frame(frame_led, 1)
@@ -70,8 +75,8 @@ def Process_Camera_Detection():
             camara_thread.join()
         if led_Detect_thread.is_alive():
             led_Detect_thread.join()
-        #if green_led_Detect.is_alive():
-        #    green_led_Detect.join()
+        if green_led_Detect.is_alive():
+            green_led_Detect.join()
 
         cv2.destroyAllWindows()
         print("End proceso_camara_deteccion")

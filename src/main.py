@@ -40,10 +40,10 @@ if __name__ == "__main__":
             print("\n***Not all threads were initialized, stopping the program.***")
             running_main_while  = False
         time.sleep(2)
-       # PrintDataSensors.stop()
+        PrintDataSensors.stop()
 
         # Iniciar los procesos
-        #proceso1.start()
+        proceso1.start()
 
         
         cont = 0
@@ -69,6 +69,63 @@ if __name__ == "__main__":
             
             action_in, action = robot_rules.behavior_rules()
             print(f"{action_in} - {action}")
+
+            if action_in == "repulsion_radius":
+                if action == "Object_front":
+                    print("Stop and turn")
+                elif action == "Object_front_and_left":
+                    print("Turn right")
+                elif action == "Object_front_and_right":
+                    print("Turn left")
+                elif action == "Object_front_left_right":
+                    print("Reverse then turn")
+                elif action == "Object_front_left_right_back":
+                    print("Stop")
+                elif action == "Object_left":
+                    print("Turn right")
+                elif action == "Object_right":
+                    print("Turn left")
+                elif action == "Object_left_and_right":
+                    print("Forward")
+                elif action == "Object_back":
+                    print("Forward")
+                elif action == "No_object":
+                    print("Forward")
+
+            elif action_in == "influence_radius":
+                if action == "No_object":
+                    print("Forward")
+                elif action == "Object_Front_Left":
+                    print("Turn right")
+                elif action == "Object_Front_Right":
+                    print("Turn left")
+                elif action == "Object_Front":
+                    print("Forward")
+
+            elif action_in == "attraction_radius":
+                if action == "Object_front":
+                    print("Forward")
+                elif action == "Object_front_and_left":
+                    print("Turn left")
+                elif action == "Object_front_and_right":
+                    print("Turn right")
+                elif action == "Object_front_left_right":
+                    print("Forward")
+                elif action == "Object_front_left_right_back":
+                    print("Forward")
+                elif action == "Object_left":
+                    print("Turn left")
+                elif action == "Object_right":
+                    print("Turn right")
+                elif action == "Object_left_and_right":
+                    print("Turn right")
+                elif action == "Object_back":
+                    print("Forward slow")
+                elif action == "No_object":
+                    print("Look for influence object")
+
+            else:
+                print("No action-in")
 
             #print("Working")
             start_time = time.time()
