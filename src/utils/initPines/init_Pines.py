@@ -22,6 +22,9 @@ from utils.batteryMonitor.BatteryMonitorController import BatteryMonitorControll
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../utils')))
 from utils.behavior_Rules.behavior_Rules_Robot import BehaviorRulesRobot
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../utils')))
+from utils.robotController.robotController_StateMachine import RobotController_StateMachine
 #---------------------------------------------------------------------------------------------------------------
 
 # Crear una instancia de LedController para el led Programa
@@ -127,3 +130,8 @@ print("*** Baterry Monitor - setup completed. ***")
 robot_rules = BehaviorRulesRobot(instance_lidar_sensor=lidar_sensor, instance_sensors=sensors, sensorsNames=sensorsNames, instance_readADC=readADC_ESP32, 
                  value_repulsion_radius=10, value_orientation_radius=20, value_attraction_radius=30, value_influence_radius=1500);
 print("*** Behavior Rules Robot - setup completed. ***")
+
+#---------------------------------------------------------------------------------------------------------------
+
+robot = RobotController_StateMachine()
+print("*** Robot Controller State Machine - setup completed. ***")

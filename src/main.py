@@ -1,10 +1,11 @@
 import time
 import multiprocessing
-from utils.initPines.init_Pines import Led_Programa, lidar_sensor, sensorsNames, sensors, sensor_Infrarrojo, sensorBrujula, readADC_ESP32, motor1, motor2, servo1, servo2, servo3, batteryMonitor, robot_rules
+from utils.initPines.init_Pines import Led_Programa, lidar_sensor, sensorsNames, sensors, sensor_Infrarrojo, sensorBrujula, readADC_ESP32, motor1, motor2, servo1, servo2, servo3, batteryMonitor, robot_rules, robot
 from utils.printDataSensors.sensorDataFormatter import SensorDataFormatter
 from utils.thread.threadManager import ThreadManager
 from hardware.moreGPIO.More_GPIO_ESP32 import MoreGpio_ESP32
 from process_Camera_Detection import Process_Camera_Detection, interruption_received
+
 
 if __name__ == "__main__":
     # Crear los procesos
@@ -47,6 +48,9 @@ if __name__ == "__main__":
 
         
         cont = 0
+
+        
+
         while running_main_while:
             if not I2C_ESP32.test_is_i2c_working():
                 running_main_while  = False
@@ -67,65 +71,84 @@ if __name__ == "__main__":
             #    print("Battery in ADC2 has reached its limit")
             #    break;  
             
-            action_in, action = robot_rules.behavior_rules()
-            print(f"{action_in} - {action}")
 
-            if action_in == "repulsion_radius":
-                if action == "Object_front":
-                    print("Stop and turn")
-                elif action == "Object_front_and_left":
-                    print("Turn right")
-                elif action == "Object_front_and_right":
-                    print("Turn left")
-                elif action == "Object_front_left_right":
-                    print("Reverse then turn")
-                elif action == "Object_front_left_right_back":
-                    print("Stop")
-                elif action == "Object_left":
-                    print("Turn right")
-                elif action == "Object_right":
-                    print("Turn left")
-                elif action == "Object_left_and_right":
-                    print("Forward")
-                elif action == "Object_back":
-                    print("Forward")
-                elif action == "No_object":
-                    print("Forward")
-
-            elif action_in == "influence_radius":
-                if action == "No_object":
-                    print("Forward")
-                elif action == "Object_Front_Left":
-                    print("Turn right")
-                elif action == "Object_Front_Right":
-                    print("Turn left")
-                elif action == "Object_Front":
-                    print("Forward")
-
-            elif action_in == "attraction_radius":
-                if action == "Object_front":
-                    print("Forward")
-                elif action == "Object_front_and_left":
-                    print("Turn left")
-                elif action == "Object_front_and_right":
-                    print("Turn right")
-                elif action == "Object_front_left_right":
-                    print("Forward")
-                elif action == "Object_front_left_right_back":
-                    print("Forward")
-                elif action == "Object_left":
-                    print("Turn left")
-                elif action == "Object_right":
-                    print("Turn right")
-                elif action == "Object_left_and_right":
-                    print("Turn right")
-                elif action == "Object_back":
-                    print("Forward slow")
-                elif action == "No_object":
-                    print("Look for influence object")
-
+            if robot.current_state == "Inicio":
+                robot.estado_inicio()
+            elif robot.current_state == "Buscar Zona Objetos":
+                robot.estado_buscar_zona_objetos()
+            elif robot.current_state == "Zona Cercana de Mayor Luz 1":
+                robot.estado_zona_cercana_de_mayor_luz_1()
+            elif robot.current_state == "Zona Objetos":
+                robot.estado_zona_objetos()
+            elif robot.current_state == "Buscar Nido":
+                robot.estado_buscar_nido()
+            elif robot.current_state == "Zona Cercana de Mayor Luz 2":
+                robot.estado_zona_cercana_de_mayor_luz_2()
+            elif robot.current_state == "Zona Nido":
+                robot.estado_zona_nido()
             else:
-                print("No action-in")
+                print("Estado desconocido. Saliendo del programa.")
+                break
+    
+            #action_in, action = robot_rules.behavior_rules()
+            #print(f"{action_in} - {action}")
+
+            #if action_in == "repulsion_radius":
+            #    if action == "Object_front":
+            #        print("Stop and turn")
+            #    elif action == "Object_front_and_left":
+            #        print("Turn right")
+            #    elif action == "Object_front_and_right":
+            #        print("Turn left")
+            #    elif action == "Object_front_left_right":
+            #        print("Reverse then turn")
+            #    elif action == "Object_front_left_right_back":
+            #        print("Stop")
+            #    elif action == "Object_left":
+            #        print("Turn right")
+            #    elif action == "Object_right":
+            #        print("Turn left")
+            #    elif action == "Object_left_and_right":
+            #        print("Forward")
+            #    elif action == "Object_back":
+            #        print("Forward")
+            #    elif action == "No_object":
+            #        print("Forward")
+
+            #elif action_in == "influence_radius":
+            #    if action == "No_object":
+            #        print("Forward")
+            #    elif action == "Object_Front_Left":
+            #        print("Turn right")
+            #    elif action == "Object_Front_Right":
+            #        print("Turn left")
+            #    elif action == "Object_Front":
+            #        print("Forward")
+
+            #elif action_in == "attraction_radius":
+            #    if action == "Object_front":
+            #        print("Forward")
+            #   elif action == "Object_front_and_left":
+            #        print("Turn left")
+            #    elif action == "Object_front_and_right":
+            #        print("Turn right")
+            #    elif action == "Object_front_left_right":
+            #        print("Forward")
+            #    elif action == "Object_front_left_right_back":
+            #        print("Forward")
+            #    elif action == "Object_left":
+            #        print("Turn left")
+            #    elif action == "Object_right":
+            #        print("Turn right")
+            #    elif action == "Object_left_and_right":
+            #        print("Turn right")
+            #    elif action == "Object_back":
+            #        print("Forward slow")
+            #    elif action == "No_object":
+            #        print("Look for influence object")
+
+            #else:
+            #    print("No action-in")
 
             #print("Working")
             start_time = time.time()
