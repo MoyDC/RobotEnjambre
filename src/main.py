@@ -153,18 +153,19 @@ if __name__ == "__main__":
             #print("Working")
             start_time = time.time()
             
-            motor1.Forward(150)
+            
+            #motor1.Forward(150)
             time.sleep(0.001)
-            motor2.Forward(150)
+            #motor2.Forward(150)
             time.sleep(0.001)
             
             # Control de servos
             cont += 1
             if cont > 180:
                 cont = 0
-            servo1.control_servo(cont)
-            servo2.control_servo(cont)
-            servo3.control_servo(cont)
+            #servo1.control_servo(cont)
+            #servo2.control_servo(cont)
+            #servo3.control_servo(cont)
             
             time.sleep(0.1)
             
