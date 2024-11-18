@@ -9,6 +9,21 @@ from imageProcessing.detectColors_Leds import DetectColors_Leds
 
 # Global flag to indicate if a KeyboardInterrupt was received
 interruption_received = multiprocessing.Event() 
+detect_color1 = multiprocessing.Event() # green
+detect_color2 = multiprocessing.Event() # blue
+
+
+
+max_size = 3
+queue_data_object_in_Camara = multiprocessing.Queue(3)
+
+def add_to_queue_multiprocesos(data1, data2, data3):
+    data = [data1, data2, data3];
+    if queue_data_object_in_Camara.qsize() >= max_size:
+        queue_data_object_in_Camara.get()  # Eliminar el dato más antiguo si está llena
+    queue_data_object_in_Camara.put(data)
+    #print("Estado de la Queue:", queue_data_object_in_Camara.get())
+
 
 #---------------------------------------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------------------------------------
@@ -35,23 +50,36 @@ def Process_Camera_Detection():
             start_time = time.time() # Inicia el temporizador
             time.sleep(0.01)
             
+            if detect_color1.is_set():
+                state_hold_GreenLed = False
+            else:
+                state_hold_GreenLed = True
+                
+            if detect_color2.is_set():
+                state_hold_BlueLed = False
+            else:
+                state_hold_BlueLed = True
+
+            led_Detect.hold(state_greenLed = state_hold_GreenLed, state_blueLed = state_hold_BlueLed)
+
             led_overlay = led_Detect.get_led_overlay()
             frame = led_overlay[0]
             mask_led_overlay = led_overlay[1]
 
             if frame is None or mask_led_overlay is None:
-                print("No frame to show in window")
+                #print("No frame to show in window")
                 time.sleep(0.1)
                 continue  # Si no hay frame u overlay, pasa a la siguiente iteración del ciclo
             
             color_object = led_overlay[2]
             mask_original = led_overlay[3]
-            result, percentage = led_Detect.analyze_position_object_in_mask(mask_original)
-            print(result)
+            result, percentage, area = led_Detect.analyze_position_object_in_mask(mask_original)
+            #print(result)
+            add_to_queue_multiprocesos(result, percentage, area);
 
             frame_led = cv2.addWeighted(frame, 0.4, mask_led_overlay, 0.6, 0) # Superponer la imagen del color detectado sobre el frame original
             camera.show_frame(frame_led, 1)
-            time.sleep(0.2)
+            time.sleep(0.1)
             
             cont = cont + 1
             end_time = time.time() # Finaliza el temporizador

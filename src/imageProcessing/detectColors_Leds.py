@@ -10,8 +10,10 @@ class DetectColors_Leds:
         self.__lock = threading.Lock()  # Initialize a Lock object
         self.__running_create_blue_led_detection_overlay = False
         self.__running_create_green_led_detection_overlay = True
-        self.__blue_led_overlay_queue = queue.Queue(maxsize=3) # Create a queue to hold frames with a max size of 3
-        self.__led_overlay_queue = queue.Queue(maxsize=6)
+        self.__blue_led_overlay_queue = queue.Queue(maxsize=1) # Create a queue to hold frames with a max size of 3
+        self.__led_overlay_queue = queue.Queue(maxsize=2)
+        self.__hold_create_blue_led_detection_overlay = False
+        self.__hold_create_green_led_detection_overlay = False
 
     def __add_to_queue(self, queue_obj, data, delay_reduce_CPU=0.0001):
         """Add data to the specified queue."""
@@ -27,15 +29,19 @@ class DetectColors_Leds:
         return cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
     def analyze_position_object_in_mask(self, mask):
-        """Analyzes the position of the object in relation to the center of the image."""
-
-        # Calculate moments to obtain the center of mass
+        """Analyzes the position and size of the object in relation to the center of the image."""
+        # Calculate moments to obtain the center of mass and area
         M = cv2.moments(mask)
+        
         if M["m00"] != 0:  # Check if an area is detected
+            # Calculate the center of mass
             cX = int(M["m10"] / M["m00"])  # X coordinate of the center of mass
             cY = int(M["m01"] / M["m00"])  # Y coordinate of the center of mass
 
-            # Get the dimensions of the mask
+            # Calculate the area of the object
+            area_object = M["m00"]
+        
+            # Calculate the total area of the mask (width * height)
             height, width = mask.shape
 
             # Calculate the position of the reference vertical line (midpoint of the image)
@@ -47,15 +53,18 @@ class DetectColors_Leds:
             # Calculate the percentage of the distance relative to the midpoint of the image
             percentage = (distance / mid_line_x) * 100
 
-            # Determine the direction
-            if distance < 0:
-                return f"Camera - Object is on the left", abs(percentage)
-            elif distance > 0:
-                return f"Camera - Object is on the right", percentage
+            offset_percentage = 10
+            # Determine the direction and add area to the output
+            if percentage < -offset_percentage:
+                return f"Camera_Object_is_on_the_left", abs(percentage), area_object
+            elif percentage > offset_percentage:
+                return f"Camera_Object_is_on_the_right", percentage, area_object
             else:
-                return "Camera - Object is at the midpoint ", 0.0
+                return f"Camera_Object_is_at_the_midpoint", abs(percentage), area_object
         else:
-            return "Camera - No Object", None
+            # No object detected, return a message and area as None
+            return "Camera_No_Object", -1, -1
+
             
     def create_blue_led_detection_overlays(self, delay_reduce_CPU = 0.2):
         time.sleep(2)
@@ -73,25 +82,26 @@ class DetectColors_Leds:
         while self.__running_create_blue_led_detection_overlay:
             start_time = time.time() # Inicia el temporizador
             time.sleep(delay_reduce_CPU) # Sleep to reduce CPU usage
-
-            frame = self.camera.get_frame()
-            if frame is None:
-                print("No frame in create_blue_led_detection_overlays")
-                continue
             
-            frame_in_HSV = self.__get_frame_in_HSV(frame)     
+            if not self.__hold_create_blue_led_detection_overlay:
+                frame = self.camera.get_frame()
+                if frame is None:
+                    #print("No frame in create_blue_led_detection_overlays")
+                    continue
+                
+                frame_in_HSV = self.__get_frame_in_HSV(frame)     
 
-            # Crear mascara para los colores
-            mask2_blue = cv2.inRange(frame_in_HSV, lower_3, upper_3)
-            mask_combined_3_channels = cv2.cvtColor(mask2_blue, cv2.COLOR_GRAY2BGR)
+                # Crear mascara para los colores
+                mask2_blue = cv2.inRange(frame_in_HSV, lower_3, upper_3)
+                mask_combined_3_channels = cv2.cvtColor(mask2_blue, cv2.COLOR_GRAY2BGR)
 
-            mask_combined = mask_combined_3_channels
-            data_to_store = (frame, mask_combined, "Blue Led", mask2_blue)
-            self.__add_to_queue(self.__led_overlay_queue, data_to_store)
+                mask_combined = mask_combined_3_channels
+                data_to_store = (frame, mask_combined, "Blue Led", mask2_blue)
+                self.__add_to_queue(self.__led_overlay_queue, data_to_store)
 
-            end_time = time.time() # Finaliza el temporizador
-            elapsed_time = end_time - start_time # Calcula el tiempo transcurrido
-            #print(f"Time create_led_blue_detection_overlays: {elapsed_time}")
+                end_time = time.time() # Finaliza el temporizador
+                elapsed_time = end_time - start_time # Calcula el tiempo transcurrido
+                #print(f"Time create_led_blue_detection_overlays: {elapsed_time}")
 
     def create_green_led_detection_overlays(self, delay_reduce_CPU = 0.2):
         time.sleep(2)
@@ -110,28 +120,29 @@ class DetectColors_Leds:
             start_time = time.time() # Inicia el temporizador
             time.sleep(delay_reduce_CPU) # Sleep to reduce CPU usage
 
-            frame = self.camera.get_frame()
-            if frame is None:
-                print("No frame in create_blue_led_detection_overlays")
-                continue
-            
-            frame_in_HSV = self.__get_frame_in_HSV(frame)     
+            if not self.__hold_create_green_led_detection_overlay:
+                frame = self.camera.get_frame()
+                if frame is None:
+                    #print("No frame in create_blue_led_detection_overlays")
+                    continue
+                
+                frame_in_HSV = self.__get_frame_in_HSV(frame)     
 
-            # Crear mascara para los colores
-            mask2_green_1 = cv2.inRange(frame_in_HSV, lower_2, upper_2)
-            mask2_green_2 = cv2.inRange(frame_in_HSV, lower_3, upper_3)
+                # Crear mascara para los colores
+                mask2_green_1 = cv2.inRange(frame_in_HSV, lower_2, upper_2)
+                mask2_green_2 = cv2.inRange(frame_in_HSV, lower_3, upper_3)
 
-            # Crear mascara combinada usando AND lÃ³gico entre mask2 y mask3
-            mask_combined_green = cv2.bitwise_and(mask2_green_1, mask2_green_2)
-            mask_combined_3_channels = cv2.cvtColor(mask_combined_green, cv2.COLOR_GRAY2BGR)
+                # Crear mascara combinada usando AND l0gico entre mask2 y mask3
+                mask_combined_green = cv2.bitwise_and(mask2_green_1, mask2_green_2)
+                mask_combined_3_channels = cv2.cvtColor(mask_combined_green, cv2.COLOR_GRAY2BGR)
 
-            mask_combined = mask_combined_3_channels
-            data_to_store = (frame, mask_combined, "Green Led", mask_combined_green)
-            self.__add_to_queue(self.__led_overlay_queue, data_to_store)
+                mask_combined = mask_combined_3_channels
+                data_to_store = (frame, mask_combined, "Green Led", mask_combined_green)
+                self.__add_to_queue(self.__led_overlay_queue, data_to_store)
 
-            end_time = time.time() # Finaliza el temporizador
-            elapsed_time = end_time - start_time # Calcula el tiempo transcurrido
-            #print(f"Time create_led_blue_detection_overlays: {elapsed_time}")
+                end_time = time.time() # Finaliza el temporizador
+                elapsed_time = end_time - start_time # Calcula el tiempo transcurrido
+                #print(f"Time create_led_blue_detection_overlays: {elapsed_time}")
 
     def get_led_overlay(self):
         """Retrieve data from the queue."""
@@ -144,4 +155,9 @@ class DetectColors_Leds:
         self.__running_create_blue_led_detection_overlay = False
         self.__running_create_green_led_detection_overlay = False
         print("Create overlays for leds stopped.")
+
+    def hold(self, state_greenLed, state_blueLed):
+        self.__hold_create_green_led_detection_overlay = state_greenLed
+        self.__hold_create_blue_led_detection_overlay = state_blueLed
+        
 

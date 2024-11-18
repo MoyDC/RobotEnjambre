@@ -23,8 +23,8 @@ from utils.batteryMonitor.BatteryMonitorController import BatteryMonitorControll
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../utils')))
 from utils.behavior_Rules.behavior_Rules_Robot import BehaviorRulesRobot
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../utils')))
-from utils.robotController.robotController_StateMachine import RobotController_StateMachine
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
+from robotController.robotController_StateMachine import RobotController_StateMachine
 #---------------------------------------------------------------------------------------------------------------
 
 # Crear una instancia de LedController para el led Programa
@@ -99,21 +99,21 @@ print("*** Motor 2 - setup completed. ***")
 pinServo1 = 4
 pinServo2 = 13
 pinServo3 = 15
-servo1 = ServoController(bus_number=1, address=0x08)
+servo1_ejeY_camara = ServoController(bus_number=1, address=0x08)
 servo2 = ServoController(bus_number=1, address=0x08)
-servo3 = ServoController(bus_number=1, address=0x08)
+servo3_ejeX_camara = ServoController(bus_number=1, address=0x08)
 
-servo1.setup_servo(servo1.get_servo_name_by_pin(pinServo1), 0)
+servo1_ejeY_camara.setup_servo(servo1_ejeY_camara.get_servo_name_by_pin(pinServo1), 0)
 servo2.setup_servo(servo2.get_servo_name_by_pin(pinServo2), 0)
-servo3.setup_servo(servo3.get_servo_name_by_pin(pinServo3), 0)
+servo3_ejeX_camara.setup_servo(servo3_ejeX_camara.get_servo_name_by_pin(pinServo3), 0)
 
 # Configuracion inicial servos
-servo1.control_servo(70)
-time.sleep(0.001)
-servo2.control_servo(0)
-time.sleep(0.001)
-servo3.control_servo(70)
-time.sleep(0.001)
+servo1_ejeY_camara.control_servo(70)
+time.sleep(0.1)
+servo2.control_servo(80)
+time.sleep(0.1)
+servo3_ejeX_camara.control_servo(90)
+time.sleep(0.1)
 
 print("*** Servomotor 1 - setup completed. ***")
 print("*** Servomotor 2 - setup completed. ***")
@@ -128,7 +128,7 @@ print("*** Baterry Monitor - setup completed. ***")
 #---------------------------------------------------------------------------------------------------------------
 
 robot_rules = BehaviorRulesRobot(instance_lidar_sensor=lidar_sensor, instance_sensors=sensors, sensorsNames=sensorsNames, instance_readADC=readADC_ESP32, 
-                 value_repulsion_radius=10, value_orientation_radius=20, value_attraction_radius=30, value_influence_radius=1500);
+                 value_repulsion_radius=15, value_orientation_radius=60, value_attraction_radius=100, value_influence_radius=1500);
 print("*** Behavior Rules Robot - setup completed. ***")
 
 #---------------------------------------------------------------------------------------------------------------
