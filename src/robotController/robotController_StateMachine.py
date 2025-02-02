@@ -10,21 +10,33 @@ class RobotController_StateMachine:
     def estado_inicio(self):
         # Comprobación de errores en la configuración inicial
         print("Estado: Inicio")
-        self.error = self.check_for_errors()
-        if self.error:
-            print("Error detectado. No se puede continuar.")
-            return
-        # Si no hay errores, avanza al siguiente estado
         self.current_state = "Buscar Zona Objetos"
 
-    def estado_buscar_zona_objetos(self):
+    def estado_buscar_zona_objetos(self, data_Object_in_Camara):
         # Buscar la zona de objetos con la cámara
         print("Estado: Buscar Zona Objetos")
-        self.zona_objeto_encontrado = self.buscar_zona_objetos()
-        if self.zona_objeto_encontrado:
-            self.current_state = "Zona Objetos"
-        else:
-            self.current_state = "Zona Cercana de Mayor Luz 1"
+        self.zona_objeto_encontrado = False
+
+        position_object_in_camara = data_Object_in_Camara[0]
+        percentage_object_in_camara = data_Object_in_Camara[1]
+
+
+        if position_object_in_camara == "Camera_Object_is_on_the_left":
+            return True
+
+        elif position_object_in_camara == "Camera_Object_is_on_the_right":
+            return True
+        
+        elif position_object_in_camara == "Camera_Object_is_at_the_midpoint":
+            return True
+        
+        elif position_object_in_camara == "Camera_No_Object":
+            return False
+
+        #if self.zona_objeto_encontrado:
+        #    self.current_state = "Zona Objetos"
+        #else:
+        #    self.current_state = "Zona Cercana de Mayor Luz 1"
 
     def estado_zona_cercana_de_mayor_luz_1(self):
         # Buscar la zona cercana con mayor luz usando los sensores LDR
@@ -63,6 +75,16 @@ class RobotController_StateMachine:
         else:
             print("No se ha llegado a la zona del nido, seguir avanzando")
 
+
+
+
+
+
+
+
+
+
+
     # Métodos auxiliares para simular la lógica de cada estado
     def check_for_errors(self):
         # Simulación de la verificación de errores
@@ -70,6 +92,7 @@ class RobotController_StateMachine:
 
     def buscar_zona_objetos(self):
         # Simulación de la detección de objetos
+
         return True  # Supongamos que encontró objetos
 
     def buscar_luz_maxima(self):
