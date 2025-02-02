@@ -146,7 +146,7 @@ if __name__ == "__main__":
 
                 # Mover el robot para que quede posicionado el objeto a la mitad de la camara
                 if move_right_robot:
-                    motor2.stop()
+                    motor2.stop() 
                     motor1.Forward(25)  
                     time.sleep(0.05)
                     motor1.stop()
@@ -244,7 +244,7 @@ if __name__ == "__main__":
                     motor2.stop()
 
                 if area_object_in_camara > 123550560:
-                    print("End")
+                    print("End test")
                     motor1.stop(0)
                     motor2.stop(0)
                     running_main_while = False
